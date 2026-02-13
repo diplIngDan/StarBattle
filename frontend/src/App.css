@@ -1,34 +1,456 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* === LOBBY === */
+.lobby-page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.lobby-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.35) saturate(1.3);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.lobby-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(2,2,4,0.85) 70%);
 }
 
-.App-link {
-    color: #61dafb;
+.lobby-content {
+  position: relative;
+  z-index: 10;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.lobby-card {
+  backdrop-filter: blur(20px);
+  background: rgba(10, 10, 15, 0.7);
+  border: 1px solid rgba(0, 243, 255, 0.12);
+  border-radius: 4px;
+  padding: 3rem 2.5rem;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(0, 243, 255, 0.04), 0 0 120px rgba(0, 0, 0, 0.6);
+}
+
+.lobby-icon {
+  color: #00f3ff;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.lobby-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+}
+
+.lobby-subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.5em;
+  color: #8899a6;
+  margin: 0.5rem 0 2.5rem;
+}
+
+.lobby-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lobby-card input {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  text-align: center;
+  letter-spacing: 0.15em;
+  padding: 0.75rem !important;
+  font-size: 0.9rem !important;
+}
+
+.lobby-card input:focus {
+  border-color: rgba(0, 243, 255, 0.5) !important;
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.08) !important;
+  outline: none !important;
+}
+
+.lobby-card input::placeholder {
+  color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.lobby-launch-btn {
+  background: rgba(0, 243, 255, 0.08) !important;
+  border: 1px solid rgba(0, 243, 255, 0.35) !important;
+  color: #00f3ff !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3em !important;
+  padding: 0.75rem !important;
+  transition: all 0.2s !important;
+  cursor: pointer;
+}
+
+.lobby-launch-btn:hover:not(:disabled) {
+  background: rgba(0, 243, 255, 0.15) !important;
+  border-color: #00f3ff !important;
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.15) !important;
+}
+
+.lobby-launch-btn:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed;
+}
+
+.lobby-controls-info {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.lobby-controls-info p {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: #8899a6;
+  margin: 0;
+}
+
+.lobby-controls-info .key {
+  font-family: 'JetBrains Mono', monospace;
+  color: #00f3ff;
+  font-size: 0.62rem;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* === GAME CONTAINER === */
+.game-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background: #020204;
+}
+
+/* === HUD === */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hud-status {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  width: 280px;
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.stat-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stat-bar:last-of-type {
+  margin-bottom: 0;
+}
+
+.stat-bar label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: #8899a6;
+  width: 55px;
+  flex-shrink: 0;
+}
+
+.stat-bar .bar {
+  flex: 1;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stat-bar .bar > div {
+  height: 100%;
+  transition: width 0.12s ease-out;
+  border-radius: 1px;
+}
+
+.hull-bar > div {
+  background: linear-gradient(90deg, #cc4400, #ff5500);
+  box-shadow: 0 0 10px rgba(255, 85, 0, 0.4);
+}
+
+.shield-bar > div {
+  background: linear-gradient(90deg, #0077cc, #0099ff);
+  box-shadow: 0 0 10px rgba(0, 153, 255, 0.4);
+}
+
+.energy-bar > div {
+  background: linear-gradient(90deg, #cc9900, #ffcc00);
+  box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
+}
+
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: #ffffff;
+  width: 28px;
+  text-align: right;
+}
+
+.stat-kd {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: #8899a6;
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+
+/* === ABILITIES === */
+.hud-abilities {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  gap: 10px;
+}
+
+.ability {
+  width: 58px;
+  height: 68px;
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ability.ready {
+  border-color: rgba(0, 243, 255, 0.25);
+}
+
+.ability.on-cooldown {
+  opacity: 0.5;
+}
+
+.ability-key {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #00f3ff;
+  line-height: 1;
+}
+
+.ability-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  color: #8899a6;
+  margin-top: 2px;
+}
+
+.cooldown-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  transition: height 0.15s linear;
+}
+
+/* === MINIMAP === */
+.minimap-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 243, 255, 0.1);
+  border-radius: 4px;
+  padding: 6px;
+}
+
+.minimap-container canvas {
+  display: block;
+  border-radius: 2px;
+}
+
+.minimap-label {
+  display: block;
+  text-align: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: rgba(0, 243, 255, 0.6);
+  margin-top: 4px;
+}
+
+/* === KILL FEED === */
+.kill-feed {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  text-align: right;
+  z-index: 10;
+}
+
+.kill-entry {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  margin-bottom: 4px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  animation: killFadeIn 0.3s ease-out;
+  white-space: nowrap;
+}
+
+.kill-entry .killer {
+  color: #00f3ff;
+}
+
+.kill-entry .separator {
+  color: #556677;
+}
+
+.kill-entry .victim {
+  color: #ff5500;
+}
+
+@keyframes killFadeIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* === RESPAWN OVERLAY === */
+.respawn-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 2, 4, 0.65);
+  z-index: 20;
+}
+
+.respawn-overlay h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: #ff2a2a;
+  margin: 0;
+  text-shadow: 0 0 40px rgba(255, 42, 42, 0.5);
+}
+
+.respawn-overlay .timer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.4rem;
+  color: #ffffff;
+  margin-top: 1rem;
+}
+
+.respawn-overlay .hint {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: #556677;
+  margin-top: 0.5rem;
+}
+
+/* === OVERLAYS === */
+.disconnect-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 2, 4, 0.92);
+  z-index: 30;
+}
+
+.disconnect-overlay p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  color: #ff5500;
+  letter-spacing: 0.2em;
+}
+
+.disconnect-overlay button {
+  margin-top: 1rem;
+  background: rgba(0, 243, 255, 0.08);
+  border: 1px solid rgba(0, 243, 255, 0.35);
+  color: #00f3ff;
+  font-family: 'Rajdhani', sans-serif;
+  padding: 0.6rem 2rem;
+  cursor: pointer;
+  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+
+.disconnect-overlay button:hover {
+  background: rgba(0, 243, 255, 0.15);
+  border-color: #00f3ff;
+}
+
+.connecting-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.connecting-overlay p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.1rem;
+  color: #00f3ff;
+  letter-spacing: 0.3em;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
