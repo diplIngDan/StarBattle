@@ -1,0 +1,128 @@
+{
+  "identity": {
+    "designer": "E1",
+    "tone": "Tactical, Heavy, Cold, Immersive",
+    "core_philosophy": "Fusion over Imitation. Function over Decoration. The UI is the cockpit."
+  },
+  "typography": {
+    "font_family": {
+      "headings": "\"Rajdhani\", sans-serif",
+      "body": "\"Inter\", sans-serif",
+      "mono": "\"JetBrains Mono\", monospace"
+    },
+    "font_urls": [
+      "https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    ],
+    "usage": {
+      "headings": "Used for ship names, sector titles, and major alerts. Uppercase preferred with wide tracking (tracking-widest).",
+      "body": "Used for chat, descriptions, and lore.",
+      "mono": "Used for changing numbers (coordinates, health, ammo), server logs, and killfeeds."
+    }
+  },
+  "colors": {
+    "palette": {
+      "void": "#020204",
+      "deep_space": "#0a0a0f",
+      "panel_bg": "rgba(10, 10, 15, 0.6)",
+      "primary_cyan": "#00f3ff",
+      "alert_crimson": "#ff2a2a",
+      "solar_gold": "#ffcc00",
+      "shield_blue": "#0099ff",
+      "hull_orange": "#ff5500",
+      "text_muted": "#8899a6",
+      "text_bright": "#ffffff"
+    },
+    "semantic": {
+      "background": "void",
+      "surface": "panel_bg",
+      "primary": "primary_cyan",
+      "destructive": "alert_crimson",
+      "success": "primary_cyan",
+      "warning": "hull_orange",
+      "info": "shield_blue"
+    },
+    "gradients": {
+      "hologram": "linear-gradient(180deg, rgba(0, 243, 255, 0.1) 0%, rgba(0, 243, 255, 0) 100%)",
+      "scanline": "repeating-linear-gradient(0deg, transparent, transparent 2px, #00f3ff 3px)"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "hud_panel": "backdrop-blur-md bg-black/40 border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]",
+      "lobby_card": "backdrop-blur-xl bg-black/60 border border-white/10 shadow-2xl"
+    },
+    "borders": {
+      "tactical": "border-l-2 border-r-2 border-primary/50",
+      "minimal": "border border-white/10"
+    },
+    "effects": {
+      "glow_text": "text-shadow: 0 0 10px rgba(0, 243, 255, 0.7)",
+      "scanline_overlay": "pointer-events-none absolute inset-0 bg-[url('https://media.istockphoto.com/id/1135638647/vector/scanlines-grid-pattern-background.jpg?s=612x612&w=0&k=20&c=6-Yv_Hq2M3fQ1Z7q5Z5q5Z5q5Z5q5Z5q5Z5q5Z5q5Z0=')] opacity-5 mix-blend-overlay"
+    }
+  },
+  "layout_strategy": {
+    "lobby": {
+      "structure": "Centralized 'Hangar Terminal' card. Heavy vertical symmetry. Background is immersive space nebula.",
+      "alignment": "Center-aligned content within the card. Screen edges used for version info and server status."
+    },
+    "hud": {
+      "structure": "Perimeter Control. No UI in the center 50% of the screen (the 'Combat Zone').",
+      "zones": {
+        "top_left": "Radar / Minimap (Circular or Hexagonal)",
+        "top_right": "Killfeed / Event Log (Text-only, transparent bg)",
+        "bottom_left": "Ship Status (Hull, Shield, Energy Bars - Thick, readable blocks)",
+        "bottom_right": "Weapons / Abilities (Cooldown icons, Ammo count)"
+      }
+    }
+  },
+  "component_guidelines": {
+    "buttons": {
+      "primary": "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 hover:border-primary uppercase tracking-widest transition-all duration-200 clip-path-polygon-[0_0,100%_0,100%_70%,90%_100%,0_100%]",
+      "secondary": "bg-white/5 hover:bg-white/10 text-white border border-white/20 hover:border-white/40"
+    },
+    "inputs": {
+      "tactical": "bg-black/50 border border-white/20 focus:border-primary/80 text-white placeholder:text-white/30 font-mono"
+    },
+    "progress_bars": {
+      "health": "h-4 bg-black/50 border border-white/10 [&>div]:bg-red-600 [&>div]:shadow-[0_0_10px_red]",
+      "shield": "h-4 bg-black/50 border border-white/10 [&>div]:bg-cyan-500 [&>div]:shadow-[0_0_10px_cyan]",
+      "energy": "h-2 bg-black/50 border border-white/10 [&>div]:bg-yellow-400"
+    }
+  },
+  "babylon_guidelines": {
+    "lighting": "Point lights for stars/explosions. Hemispheric light for base ambient (very low intensity).",
+    "post_processing": "REQUIRED: DefaultRenderingPipeline with glowLayerEnabled: true. Bloom is essential for the 'neon space' look.",
+    "camera": "ArcRotateCamera locked to high alpha/beta for top-down view, but allow slight tilt for depth.",
+    "materials": "StandardMaterial with emissiveColor for ships (to glow in dark space). SpecularPower high for metallic look.",
+    "particles": "ParticleSystem for engine trails (cyan/orange). Solid particles for asteroid fields."
+  },
+  "assets": {
+    "backgrounds": {
+      "lobby_nebula": {
+        "url": "https://images.unsplash.com/photo-1615392030676-6c532fe0c302?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwxfHxzY2ktZmklMjBzcGFjZSUyMGJhY2tncm91bmQlMjBkaWdpdGFsJTIwYXJ0JTIwYmx1ZSUyMHB1cnBsZSUyMG5lYnVsYXxlbnwwfHx8fDE3NzA5Nzc0NzR8MA&ixlib=rb-4.1.0&q=85",
+        "alt": "Deep purple and blue galaxy nebula illustration",
+        "category": "background"
+      },
+      "deep_space_alt": {
+        "url": "https://images.unsplash.com/photo-1768329051020-489b1bc3f507?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzV8MHwxfHNlYXJjaHwxfHxkZWVwJTIwc3BhY2UlMjBuZWJ1bGElMjBiYWNrZ3JvdW5kJTIwZGFyayUyMHNjaS1maXxlbnwwfHx8fDE3NzA5Nzc0Njh8MA&ixlib=rb-4.1.0&q=85",
+        "alt": "Abstract dark background with scattered particles",
+        "category": "background"
+      }
+    }
+  },
+  "universal_guidelines": {
+    "theme": "Dark Mode Only (Space setting)",
+    "animations": "Micro-interactions on hover. Smooth transitions for HUD bars. No 'bounce' effects - keep it mechanical/linear.",
+    "accessibility": "Ensure high contrast for text (White on Black). Status bars must have distinct colors (Red/Blue/Yellow) not just shades.",
+    "testing": "All interactive elements MUST have data-testid attributes (e.g., 'join-game-btn', 'hull-bar')."
+  },
+  "instructions_to_main_agent": [
+    "1. Setup Shadcn with the provided dark theme colors.",
+    "2. Install 'lucide-react' for icons (Radar, Crosshair, Shield, Zap).",
+    "3. Create a 'GameCanvas' component that wraps the Babylon.js engine.",
+    "4. Create a 'HUD' component that overlays absolute on top of GameCanvas.",
+    "5. Use the 'lobby_nebula' image as the background for the Landing Page.",
+    "6. Ensure the canvas resizes correctly and captures mouse events for ship movement.",
+    "7. Implement the 'Warp Jump' visual as a camera FOV distortion + particle burst."
+  ]
+}
