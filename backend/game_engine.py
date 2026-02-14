@@ -990,6 +990,8 @@ class GameRoom:
             "players": [p.to_dict() for p in self.players.values()],
             "missiles": [m.to_dict() for m in self.missiles if m.alive],
             "bombardments": [b.to_dict() for b in self.bombardment_zones if not b.exploded],
+            "sporeClouds": [c.to_dict() for c in self.spore_clouds],
+            "mutalisks": [m.to_dict() for m in self.mutalisks if m.alive],
             "effects": self.effects.copy(),
         }
         self.effects.clear()
