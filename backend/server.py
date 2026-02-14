@@ -51,16 +51,18 @@ app.include_router(api_router)
 async def websocket_endpoint(websocket: WebSocket, room_id: str):
     await websocket.accept()
     name = websocket.query_params.get("name", "Pilot")
+    ship_class = websocket.query_params.get("ship_class", "vanguard")
     player_id = str(uuid.uuid4())[:8]
 
     room = room_manager.get_or_create_room(room_id)
-    player = room.add_player(player_id, name, websocket)
+    player = room.add_player(player_id, name, websocket, ship_class)
 
     try:
         await websocket.send_json({
             "type": "init",
             "playerId": player_id,
             "arenaSize": ARENA_SIZE,
+            "shipClass": ship_class,
         })
 
         room.effects.append({"type": "player_joined", "name": name})
