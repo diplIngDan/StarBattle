@@ -138,6 +138,31 @@
   display: inline-block;
 }
 
+/* Leviathan specific styles */
+.class-selection.three-classes {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.class-card.leviathan.selected {
+  border-color: #66cc44;
+  background: rgba(102, 204, 68, 0.06);
+  box-shadow: 0 0 12px rgba(102, 204, 68, 0.12);
+}
+
+.class-card.leviathan:hover {
+  border-color: rgba(102, 204, 68, 0.35);
+}
+
+.class-card .leviathan-icon {
+  color: #66cc44;
+}
+
+.class-card .leviathan-passive {
+  color: #66cc44;
+  background: rgba(102, 204, 68, 0.08);
+}
+
 .lobby-card form {
   display: flex;
   flex-direction: column;
