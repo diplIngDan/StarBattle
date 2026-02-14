@@ -295,6 +295,47 @@ class BombardmentZone:
         }
 
 
+class SporeCloud:
+    def __init__(self, cloud_id: str, owner_id: str, x: float, z: float):
+        self.id = cloud_id
+        self.owner_id = owner_id
+        self.x = x
+        self.z = z
+        self.radius = SPORE_CLOUD_RADIUS
+        self.timer = SPORE_CLOUD_DURATION
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "x": round(self.x, 2),
+            "z": round(self.z, 2),
+            "radius": self.radius,
+            "timer": round(self.timer, 2),
+        }
+
+
+class Mutalisk:
+    def __init__(self, mutalisk_id: str, owner_id: str, x: float, z: float):
+        self.id = mutalisk_id
+        self.owner_id = owner_id
+        self.x = x
+        self.z = z
+        self.health = MUTALISK_HEALTH
+        self.alive = True
+        self.lifetime = MUTALISK_LIFETIME
+        self.target_id = None
+        self.attack_cooldown = 0.0
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "x": round(self.x, 2),
+            "z": round(self.z, 2),
+            "ownerId": self.owner_id,
+            "health": round(self.health, 1),
+        }
+
+
 class GameRoom:
     def __init__(self, room_id: str):
         self.id = room_id
