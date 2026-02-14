@@ -193,6 +193,19 @@ class Player:
         self.channel_timer = 0.0
         self.channel_target_id = None
         self.repair_bots_timer = 0.0
+        # Leviathan resets
+        self.bio_stasis_cd = 0.0
+        self.spore_cloud_cd = 0.0
+        self.mutalisk_cd = 0.0
+        self.bile_swell_cd = 0.0
+        self.bio_regen_timer = 0.0
+        self.last_damage_time = 0.0
+        self.armor_debuff_timer = 0.0
+        self.armor_debuff_amount = 0.0
+        self.stun_timer = 0.0
+        self.slow_timer = 0.0
+        self.slow_amount = 0.0
+        self.in_spore_cloud = False
 
     def to_dict(self):
         d = {
