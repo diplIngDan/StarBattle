@@ -946,8 +946,16 @@ class GameRoom:
     def _apply_damage(self, target: Player, damage: float, attacker: Optional[Player] = None):
         if not target.alive:
             return
+
+        # Track last damage time for Leviathan Bio-Regen
+        target.last_damage_time = self.current_time
+
         # Dreadnought passive: Reinforced Hull - 15% damage reduction
         damage *= (1 - target.damage_reduction)
+
+        # Bile Swell armor debuff - increases damage taken
+        if target.armor_debuff_amount > 0:
+            damage *= (1 + target.armor_debuff_amount)
 
         if target.shields > 0:
             shield_dmg = min(target.shields, damage)
@@ -967,6 +975,9 @@ class GameRoom:
             target.is_channeling = False
             target.channel_target_id = None
             target.repair_bots_timer = 0
+            target.stun_timer = 0
+            target.slow_timer = 0
+            target.armor_debuff_timer = 0
             if attacker:
                 attacker.kills += 1
             self.effects.append({"type": "explosion", "x": target.x, "z": target.z, "size": "large"})
