@@ -77,27 +77,60 @@ function createShipMesh(scene, color, id, shipClass) {
   const accentMat = new StandardMaterial("aMat_" + id, scene);
   accentMat.emissiveColor = color;
 
-  const hull = MeshBuilder.CreateBox("hull_" + id, { width: 1.2, height: 0.3, depth: 3 }, scene);
-  hull.material = hullMat; hull.parent = root; hull.isPickable = false;
+  if (shipClass === 'leviathan') {
+    // Organic alien ship design
+    const body = MeshBuilder.CreateSphere("body_" + id, { diameter: 2.5, segments: 12 }, scene);
+    body.scaling.set(1, 0.4, 1.6);
+    body.material = hullMat; body.parent = root; body.isPickable = false;
 
-  const nose = MeshBuilder.CreateBox("nose_" + id, { width: 0.5, height: 0.35, depth: 1.2 }, scene);
-  nose.position.z = 1.8; nose.material = accentMat; nose.parent = root; nose.isPickable = false;
+    // Organic tendrils/appendages
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * Math.PI / 2) + Math.PI / 4;
+      const tendril = MeshBuilder.CreateCylinder("tend_" + id + "_" + i, {
+        height: 2.5, diameterTop: 0.15, diameterBottom: 0.4, tessellation: 8
+      }, scene);
+      tendril.position.x = Math.cos(angle) * 1.2;
+      tendril.position.z = Math.sin(angle) * 1.2 - 0.5;
+      tendril.rotation.z = Math.cos(angle) * 0.4;
+      tendril.rotation.x = Math.sin(angle) * 0.4;
+      tendril.material = accentMat; tendril.parent = root; tendril.isPickable = false;
+    }
 
-  const wingL = MeshBuilder.CreateBox("wL_" + id, { width: 1.8, height: 0.12, depth: 1.3 }, scene);
-  wingL.position.x = -0.9; wingL.position.z = -0.3;
-  wingL.material = hullMat; wingL.parent = root; wingL.isPickable = false;
+    // Front mandibles
+    for (const xOff of [-0.5, 0.5]) {
+      const mandible = MeshBuilder.CreateBox("mand_" + id + "_" + xOff, {
+        width: 0.2, height: 0.15, depth: 1.5
+      }, scene);
+      mandible.position.set(xOff, 0, 1.8);
+      mandible.rotation.y = xOff > 0 ? 0.2 : -0.2;
+      mandible.material = accentMat; mandible.parent = root; mandible.isPickable = false;
+    }
 
-  const wingR = MeshBuilder.CreateBox("wR_" + id, { width: 1.8, height: 0.12, depth: 1.3 }, scene);
-  wingR.position.x = 0.9; wingR.position.z = -0.3;
-  wingR.material = hullMat; wingR.parent = root; wingR.isPickable = false;
+    root.scaling.setAll(1.25);
+  } else {
+    // Standard mechanical ship design
+    const hull = MeshBuilder.CreateBox("hull_" + id, { width: 1.2, height: 0.3, depth: 3 }, scene);
+    hull.material = hullMat; hull.parent = root; hull.isPickable = false;
 
-  for (const xOff of [-0.4, 0.4]) {
-    const eng = MeshBuilder.CreateSphere("eng_" + id + "_" + xOff, { diameter: 0.45, segments: 8 }, scene);
-    eng.position.set(xOff, 0, -1.5); eng.material = accentMat; eng.parent = root; eng.isPickable = false;
-  }
+    const nose = MeshBuilder.CreateBox("nose_" + id, { width: 0.5, height: 0.35, depth: 1.2 }, scene);
+    nose.position.z = 1.8; nose.material = accentMat; nose.parent = root; nose.isPickable = false;
 
-  if (shipClass === 'dreadnought') {
-    root.scaling.setAll(1.35);
+    const wingL = MeshBuilder.CreateBox("wL_" + id, { width: 1.8, height: 0.12, depth: 1.3 }, scene);
+    wingL.position.x = -0.9; wingL.position.z = -0.3;
+    wingL.material = hullMat; wingL.parent = root; wingL.isPickable = false;
+
+    const wingR = MeshBuilder.CreateBox("wR_" + id, { width: 1.8, height: 0.12, depth: 1.3 }, scene);
+    wingR.position.x = 0.9; wingR.position.z = -0.3;
+    wingR.material = hullMat; wingR.parent = root; wingR.isPickable = false;
+
+    for (const xOff of [-0.4, 0.4]) {
+      const eng = MeshBuilder.CreateSphere("eng_" + id + "_" + xOff, { diameter: 0.45, segments: 8 }, scene);
+      eng.position.set(xOff, 0, -1.5); eng.material = accentMat; eng.parent = root; eng.isPickable = false;
+    }
+
+    if (shipClass === 'dreadnought') {
+      root.scaling.setAll(1.35);
+    }
   }
 
   return root;
