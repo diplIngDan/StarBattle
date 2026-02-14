@@ -12,6 +12,7 @@ export default function GamePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const playerName = location.state?.playerName;
+  const shipClass = location.state?.shipClass || 'vanguard';
 
   const [connected, setConnected] = useState(false);
   const [playerId, setPlayerId] = useState(null);
@@ -26,7 +27,9 @@ export default function GamePage() {
       return;
     }
 
-    const ws = new WebSocket(`${WS_URL}/api/ws/default?name=${encodeURIComponent(playerName)}`);
+    const ws = new WebSocket(
+      `${WS_URL}/api/ws/default?name=${encodeURIComponent(playerName)}&ship_class=${shipClass}`
+    );
     wsRef.current = ws;
 
     ws.onopen = () => setConnected(true);
@@ -52,7 +55,7 @@ export default function GamePage() {
     };
 
     return () => ws.close();
-  }, [playerName, navigate]);
+  }, [playerName, shipClass, navigate]);
 
   const sendMessage = useCallback((msg) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {

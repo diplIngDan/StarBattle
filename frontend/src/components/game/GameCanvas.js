@@ -41,14 +41,13 @@ function setupArena(scene, size) {
   grid.color = new Color3(0, 0.06, 0.08);
   grid.isPickable = false;
 
-  const boundaryPoints = [
-    new Vector3(-size, 0.5, -size),
-    new Vector3(size, 0.5, -size),
-    new Vector3(size, 0.5, size),
-    new Vector3(-size, 0.5, size),
-    new Vector3(-size, 0.5, -size),
-  ];
-  const boundary = MeshBuilder.CreateLines("boundary", { points: boundaryPoints }, scene);
+  const boundary = MeshBuilder.CreateLines("boundary", {
+    points: [
+      new Vector3(-size, 0.5, -size), new Vector3(size, 0.5, -size),
+      new Vector3(size, 0.5, size), new Vector3(-size, 0.5, size),
+      new Vector3(-size, 0.5, -size),
+    ],
+  }, scene);
   boundary.color = new Color3(0, 0.35, 0.45);
   boundary.isPickable = false;
 
@@ -58,19 +57,17 @@ function setupArena(scene, size) {
   starMat.disableLighting = true;
   starMesh.material = starMat;
   starMesh.isVisible = false;
-
   for (let i = 0; i < 250; i++) {
     const inst = starMesh.createInstance("star_" + i);
     inst.position.x = (Math.random() - 0.5) * size * 3;
     inst.position.y = -6 - Math.random() * 25;
     inst.position.z = (Math.random() - 0.5) * size * 3;
-    const s = 0.3 + Math.random() * 0.8;
-    inst.scaling.setAll(s);
+    inst.scaling.setAll(0.3 + Math.random() * 0.8);
     inst.isPickable = false;
   }
 }
 
-function createShipMesh(scene, color, id) {
+function createShipMesh(scene, color, id, shipClass) {
   const root = new TransformNode("ship_" + id, scene);
 
   const hullMat = new StandardMaterial("hMat_" + id, scene);
@@ -81,36 +78,26 @@ function createShipMesh(scene, color, id) {
   accentMat.emissiveColor = color;
 
   const hull = MeshBuilder.CreateBox("hull_" + id, { width: 1.2, height: 0.3, depth: 3 }, scene);
-  hull.material = hullMat;
-  hull.parent = root;
-  hull.isPickable = false;
+  hull.material = hullMat; hull.parent = root; hull.isPickable = false;
 
   const nose = MeshBuilder.CreateBox("nose_" + id, { width: 0.5, height: 0.35, depth: 1.2 }, scene);
-  nose.position.z = 1.8;
-  nose.material = accentMat;
-  nose.parent = root;
-  nose.isPickable = false;
+  nose.position.z = 1.8; nose.material = accentMat; nose.parent = root; nose.isPickable = false;
 
   const wingL = MeshBuilder.CreateBox("wL_" + id, { width: 1.8, height: 0.12, depth: 1.3 }, scene);
-  wingL.position.x = -0.9;
-  wingL.position.z = -0.3;
-  wingL.material = hullMat;
-  wingL.parent = root;
-  wingL.isPickable = false;
+  wingL.position.x = -0.9; wingL.position.z = -0.3;
+  wingL.material = hullMat; wingL.parent = root; wingL.isPickable = false;
 
   const wingR = MeshBuilder.CreateBox("wR_" + id, { width: 1.8, height: 0.12, depth: 1.3 }, scene);
-  wingR.position.x = 0.9;
-  wingR.position.z = -0.3;
-  wingR.material = hullMat;
-  wingR.parent = root;
-  wingR.isPickable = false;
+  wingR.position.x = 0.9; wingR.position.z = -0.3;
+  wingR.material = hullMat; wingR.parent = root; wingR.isPickable = false;
 
   for (const xOff of [-0.4, 0.4]) {
     const eng = MeshBuilder.CreateSphere("eng_" + id + "_" + xOff, { diameter: 0.45, segments: 8 }, scene);
-    eng.position.set(xOff, 0, -1.5);
-    eng.material = accentMat;
-    eng.parent = root;
-    eng.isPickable = false;
+    eng.position.set(xOff, 0, -1.5); eng.material = accentMat; eng.parent = root; eng.isPickable = false;
+  }
+
+  if (shipClass === 'dreadnought') {
+    root.scaling.setAll(1.35);
   }
 
   return root;
@@ -122,8 +109,7 @@ function createBeamMesh(scene, id) {
   mat.emissiveColor = new Color3(0, 0.7, 1);
   mat.alpha = 0.8;
   mat.disableLighting = true;
-  beam.material = mat;
-  beam.isPickable = false;
+  beam.material = mat; beam.isPickable = false;
   return beam;
 }
 
@@ -132,14 +118,12 @@ function updateBeamVisual(beamMesh, p) {
   const dz = p.fireTargetZ - p.z;
   const dist = Math.sqrt(dx * dx + dz * dz);
   if (dist < 0.5) { beamMesh.setEnabled(false); return; }
-
   const maxDist = Math.min(dist, LASER_RANGE);
   const ndx = dx / dist;
   const ndz = dz / dist;
   const endX = p.x + ndx * maxDist;
   const endZ = p.z + ndz * maxDist;
   const angle = Math.atan2(dx, dz);
-
   beamMesh.position.x = (p.x + endX) / 2;
   beamMesh.position.y = 0.5;
   beamMesh.position.z = (p.z + endZ) / 2;
@@ -153,8 +137,7 @@ function createMissileMesh(scene) {
   const mat = new StandardMaterial("mMat", scene);
   mat.emissiveColor = new Color3(1, 0.5, 0);
   mat.disableLighting = true;
-  m.material = mat;
-  m.isPickable = false;
+  m.material = mat; m.isPickable = false;
   return m;
 }
 
@@ -182,62 +165,163 @@ function spawnWarpEffect(scene, x, z, texture) {
   const ps = new ParticleSystem("warp", 80, scene);
   ps.emitter = new Vector3(x, 0.5, z);
   ps.particleTexture = texture;
-  ps.minSize = 0.4;
-  ps.maxSize = 1.5;
-  ps.minLifeTime = 0.15;
-  ps.maxLifeTime = 0.5;
+  ps.minSize = 0.4; ps.maxSize = 1.5;
+  ps.minLifeTime = 0.15; ps.maxLifeTime = 0.5;
   ps.emitRate = 300;
   ps.createSphereEmitter(2);
   ps.color1 = new Color4(0, 0.95, 1, 1);
   ps.color2 = new Color4(0, 0.3, 1, 0.4);
-  ps.minEmitPower = 5;
-  ps.maxEmitPower = 15;
+  ps.minEmitPower = 5; ps.maxEmitPower = 15;
   ps.targetStopDuration = 0.15;
   ps.disposeOnStop = true;
   ps.start();
 }
 
+function spawnShieldFlash(scene, x, z) {
+  const sphere = MeshBuilder.CreateSphere("sf", { diameter: 8, segments: 12 }, scene);
+  sphere.position.set(x, 0.5, z);
+  const mat = new StandardMaterial("sfMat", scene);
+  mat.emissiveColor = new Color3(0, 0.5, 1);
+  mat.alpha = 0.45;
+  mat.disableLighting = true;
+  mat.backFaceCulling = false;
+  sphere.material = mat;
+  sphere.isPickable = false;
+  setTimeout(() => { try { sphere.dispose(); } catch (e) { /* noop */ } }, 600);
+}
+
+function spawnYamatoFire(scene, sx, sz, ex, ez, texture) {
+  const dx = ex - sx; const dz = ez - sz;
+  const dist = Math.sqrt(dx * dx + dz * dz);
+  if (dist < 1) return;
+  const angle = Math.atan2(dx, dz);
+  const beam = MeshBuilder.CreateBox("yamato_beam", { width: 0.6, height: 0.3, depth: 1 }, scene);
+  beam.position.x = (sx + ex) / 2;
+  beam.position.y = 0.8;
+  beam.position.z = (sz + ez) / 2;
+  beam.rotation.y = angle;
+  beam.scaling.z = dist;
+  const mat = new StandardMaterial("yamatoMat", scene);
+  mat.emissiveColor = new Color3(1, 0.7, 0);
+  mat.alpha = 0.9;
+  mat.disableLighting = true;
+  beam.material = mat;
+  beam.isPickable = false;
+  spawnExplosion(scene, ex, ez, 'large', texture);
+  setTimeout(() => { try { beam.dispose(); } catch (e) { /* noop */ } }, 400);
+}
+
+function spawnBombardmentExplosions(scene, x, z, radius, texture) {
+  for (let i = 0; i < 6; i++) {
+    const ox = x + (Math.random() - 0.5) * radius * 1.2;
+    const oz = z + (Math.random() - 0.5) * radius * 1.2;
+    setTimeout(() => spawnExplosion(scene, ox, oz, 'large', texture), i * 150);
+  }
+}
+
 function syncScene(r, state) {
   const { scene, camera, shipMeshes, missileMeshes, beamMeshes, playerId, flareTex } = r;
 
+  // --- Ships ---
   const activeIds = new Set();
   for (const p of state.players) {
     activeIds.add(p.id);
-
     if (!p.alive) {
       if (shipMeshes[p.id]) shipMeshes[p.id].setEnabled(false);
       if (beamMeshes[p.id]) beamMeshes[p.id].setEnabled(false);
+      if (r.channelBeams[p.id]) r.channelBeams[p.id].setEnabled(false);
       continue;
     }
-
     if (!shipMeshes[p.id]) {
       const isLocal = p.id === playerId;
       const color = isLocal ? new Color3(0, 0.95, 1) : new Color3(1, 0.15, 0.15);
-      shipMeshes[p.id] = createShipMesh(scene, color, p.id);
+      shipMeshes[p.id] = createShipMesh(scene, color, p.id, p.shipClass);
     }
-
     const mesh = shipMeshes[p.id];
     mesh.setEnabled(true);
     mesh.position.x += (p.x - mesh.position.x) * 0.25;
     mesh.position.z += (p.z - mesh.position.z) * 0.25;
     mesh.rotation.y = p.rotation;
 
+    // Laser beam
     if (p.isFiring) {
       if (!beamMeshes[p.id]) beamMeshes[p.id] = createBeamMesh(scene, p.id);
       updateBeamVisual(beamMeshes[p.id], p);
     } else if (beamMeshes[p.id]) {
       beamMeshes[p.id].setEnabled(false);
     }
-  }
 
-  for (const id of Object.keys(shipMeshes)) {
-    if (!activeIds.has(id)) {
-      shipMeshes[id].dispose();
-      delete shipMeshes[id];
-      if (beamMeshes[id]) { beamMeshes[id].dispose(); delete beamMeshes[id]; }
+    // Yamato channel beam
+    if (p.isChanneling && p.channelTargetId) {
+      const target = state.players.find(t => t.id === p.channelTargetId);
+      if (target && target.alive) {
+        if (!r.channelBeams[p.id]) {
+          const cb = MeshBuilder.CreateBox("ch_" + p.id, { width: 0.35, height: 0.15, depth: 1 }, scene);
+          const mat = new StandardMaterial("chMat_" + p.id, scene);
+          mat.emissiveColor = new Color3(1, 0.7, 0);
+          mat.alpha = 0.4;
+          mat.disableLighting = true;
+          cb.material = mat;
+          cb.isPickable = false;
+          r.channelBeams[p.id] = cb;
+        }
+        const cb = r.channelBeams[p.id];
+        const tdx = target.x - p.x;
+        const tdz = target.z - p.z;
+        const tdist = Math.sqrt(tdx * tdx + tdz * tdz);
+        const tangle = Math.atan2(tdx, tdz);
+        cb.position.x = (p.x + target.x) / 2;
+        cb.position.y = 0.8;
+        cb.position.z = (p.z + target.z) / 2;
+        cb.rotation.y = tangle;
+        cb.scaling.z = tdist;
+        cb.material.alpha = 0.25 + Math.sin(Date.now() * 0.015) * 0.2;
+        cb.setEnabled(true);
+      }
+    } else if (r.channelBeams[p.id]) {
+      r.channelBeams[p.id].setEnabled(false);
+    }
+
+    // Repair bots particles
+    if (p.repairBotsTimer > 0) {
+      if (!r.repairEffects[p.id]) {
+        const emitPos = new Vector3(p.x, 0.5, p.z);
+        const ps = new ParticleSystem("repair_" + p.id, 25, scene);
+        ps.emitter = emitPos;
+        ps.particleTexture = flareTex;
+        ps.minSize = 0.15; ps.maxSize = 0.5;
+        ps.minLifeTime = 0.3; ps.maxLifeTime = 0.7;
+        ps.emitRate = 12;
+        ps.createSphereEmitter(2);
+        ps.color1 = new Color4(0, 1, 0.3, 0.7);
+        ps.color2 = new Color4(0, 0.5, 0.2, 0.3);
+        ps.minEmitPower = 0.3; ps.maxEmitPower = 1.5;
+        ps.start();
+        r.repairEffects[p.id] = { ps, emitPos };
+      }
+      const shipPos = shipMeshes[p.id]?.position;
+      if (shipPos) {
+        r.repairEffects[p.id].emitPos.x = shipPos.x;
+        r.repairEffects[p.id].emitPos.z = shipPos.z;
+      }
+    } else if (r.repairEffects[p.id]) {
+      r.repairEffects[p.id].ps.stop();
+      r.repairEffects[p.id].ps.dispose();
+      delete r.repairEffects[p.id];
     }
   }
 
+  // Cleanup stale
+  for (const id of Object.keys(shipMeshes)) {
+    if (!activeIds.has(id)) {
+      shipMeshes[id].dispose(); delete shipMeshes[id];
+      if (beamMeshes[id]) { beamMeshes[id].dispose(); delete beamMeshes[id]; }
+      if (r.channelBeams[id]) { r.channelBeams[id].dispose(); delete r.channelBeams[id]; }
+      if (r.repairEffects[id]) { r.repairEffects[id].ps.dispose(); delete r.repairEffects[id]; }
+    }
+  }
+
+  // --- Missiles ---
   const activeMissiles = new Set();
   for (const m of (state.missiles || [])) {
     activeMissiles.add(m.id);
@@ -248,32 +332,62 @@ function syncScene(r, state) {
     mesh.position.z += (m.z - mesh.position.z) * 0.4;
   }
   for (const id of Object.keys(missileMeshes)) {
-    if (!activeMissiles.has(id)) {
-      missileMeshes[id].dispose();
-      delete missileMeshes[id];
+    if (!activeMissiles.has(id)) { missileMeshes[id].dispose(); delete missileMeshes[id]; }
+  }
+
+  // --- Bombardment Zones ---
+  const activeBombs = new Set();
+  for (const b of (state.bombardments || [])) {
+    activeBombs.add(b.id);
+    if (!r.bombardmentMeshes[b.id]) {
+      const disc = MeshBuilder.CreateDisc("bomb_" + b.id, { radius: b.radius, tessellation: 24 }, scene);
+      disc.rotation.x = Math.PI / 2;
+      disc.position.set(b.x, 0.15, b.z);
+      const mat = new StandardMaterial("bombMat_" + b.id, scene);
+      mat.emissiveColor = new Color3(1, 0.1, 0);
+      mat.alpha = 0.15;
+      mat.disableLighting = true;
+      mat.backFaceCulling = false;
+      disc.material = mat;
+      disc.isPickable = false;
+      r.bombardmentMeshes[b.id] = disc;
+    }
+    r.bombardmentMeshes[b.id].material.alpha = 0.1 + Math.sin(Date.now() * 0.008) * 0.1;
+  }
+  for (const id of Object.keys(r.bombardmentMeshes)) {
+    if (!activeBombs.has(id)) {
+      r.bombardmentMeshes[id].dispose();
+      delete r.bombardmentMeshes[id];
     }
   }
 
+  // --- Camera ---
   const local = state.players.find(p => p.id === playerId);
   if (local) {
     camera.target.x += (local.x - camera.target.x) * 0.08;
     camera.target.z += (local.z - camera.target.z) * 0.08;
   }
 
+  // --- Effects ---
   for (const effect of (state.effects || [])) {
     if (effect.type === 'explosion') {
       spawnExplosion(scene, effect.x, effect.z, effect.size, flareTex);
     } else if (effect.type === 'warp') {
       spawnWarpEffect(scene, effect.x, effect.z, flareTex);
+    } else if (effect.type === 'emergency_shields') {
+      spawnShieldFlash(scene, effect.x, effect.z);
+    } else if (effect.type === 'yamato_fire') {
+      spawnYamatoFire(scene, effect.startX, effect.startZ, effect.endX, effect.endZ, flareTex);
+    } else if (effect.type === 'bombardment_explode') {
+      spawnBombardmentExplosions(scene, effect.x, effect.z, effect.radius, flareTex);
     }
   }
 
+  // Move indicator
   if (r.moveIndicator && r.moveIndicator.isEnabled() && local && local.alive) {
     const dx = local.x - r.moveIndicator.position.x;
     const dz = local.z - r.moveIndicator.position.z;
-    if (Math.sqrt(dx * dx + dz * dz) < 3) {
-      r.moveIndicator.setEnabled(false);
-    }
+    if (Math.sqrt(dx * dx + dz * dz) < 3) r.moveIndicator.setEnabled(false);
   }
 }
 
@@ -282,8 +396,9 @@ export default function GameCanvas({ gameState, playerId, arenaSize, onSendMessa
   const r = useRef({
     engine: null, scene: null, camera: null,
     shipMeshes: {}, missileMeshes: {}, beamMeshes: {},
+    channelBeams: {}, repairEffects: {}, bombardmentMeshes: {},
     moveIndicator: null, flareTex: null,
-    isFiring: false, lastAimTime: 0,
+    isFiring: false, lastAimTime: 0, lastMouseWorld: null,
     gameState: null, playerId: null, onSendMessage: null,
   });
 
@@ -320,7 +435,7 @@ export default function GameCanvas({ gameState, playerId, arenaSize, onSendMessa
     moveMat.emissiveColor = new Color3(0, 0.5, 0.3);
     moveMat.alpha = 0.6;
     refs.moveIndicator = MeshBuilder.CreateTorus("moveInd", {
-      diameter: 2, thickness: 0.12, tessellation: 16
+      diameter: 2, thickness: 0.12, tessellation: 16,
     }, refs.scene);
     refs.moveIndicator.material = moveMat;
     refs.moveIndicator.position.y = 0.1;
@@ -353,11 +468,12 @@ export default function GameCanvas({ gameState, playerId, arenaSize, onSendMessa
     };
 
     const onPointerMove = (e) => {
+      const world = screenToWorld(refs.scene, refs.camera, e.offsetX, e.offsetY);
+      if (world) refs.lastMouseWorld = world;
       if (!refs.isFiring) return;
       const now = Date.now();
       if (now - refs.lastAimTime < 50) return;
       refs.lastAimTime = now;
-      const world = screenToWorld(refs.scene, refs.camera, e.offsetX, e.offsetY);
       if (world && refs.onSendMessage) {
         refs.onSendMessage({ type: 'fire_aim', x: world.x, z: world.z });
       }
@@ -365,10 +481,16 @@ export default function GameCanvas({ gameState, playerId, arenaSize, onSendMessa
 
     const onKeyDown = (e) => {
       if (!refs.onSendMessage) return;
-      if (e.key === 'q' || e.key === 'Q') {
-        refs.onSendMessage({ type: 'ability', id: 'warp' });
-      } else if (e.key === 'w' || e.key === 'W') {
-        refs.onSendMessage({ type: 'ability', id: 'missile' });
+      const key = e.key.toLowerCase();
+      if (key === 'q') {
+        refs.onSendMessage({ type: 'ability', id: 'q' });
+      } else if (key === 'w') {
+        refs.onSendMessage({ type: 'ability', id: 'w' });
+      } else if (key === 'e') {
+        refs.onSendMessage({ type: 'ability', id: 'e' });
+      } else if (key === 'r') {
+        const w = refs.lastMouseWorld;
+        refs.onSendMessage({ type: 'ability', id: 'r', x: w ? w.x : 0, z: w ? w.z : 0 });
       }
     };
 
