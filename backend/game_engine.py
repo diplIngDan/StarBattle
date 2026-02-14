@@ -622,6 +622,8 @@ class GameRoom:
         return nearest
 
     def _update(self, dt: float):
+        self.current_time += dt
+
         # Update each player
         for player in self.players.values():
             if not player.alive:
@@ -630,6 +632,38 @@ class GameRoom:
                     player.spawn()
                     self.effects.append({"type": "respawn", "playerId": player.id})
                 continue
+
+            # --- Stun handling (from Bio-Stasis) ---
+            if player.stun_timer > 0:
+                player.stun_timer -= dt
+                player.vx = 0.0
+                player.vz = 0.0
+                player.is_firing = False
+                player.has_move_target = False
+                if player.stun_timer <= 0:
+                    player.stun_timer = 0
+                continue  # Skip all other updates while stunned
+
+            # --- Slow debuff timer ---
+            if player.slow_timer > 0:
+                player.slow_timer -= dt
+                if player.slow_timer <= 0:
+                    player.slow_timer = 0
+                    player.slow_amount = 0
+                    player.in_spore_cloud = False
+
+            # --- Armor debuff timer (from Bile Swell) ---
+            if player.armor_debuff_timer > 0:
+                player.armor_debuff_timer -= dt
+                if player.armor_debuff_timer <= 0:
+                    player.armor_debuff_timer = 0
+                    player.armor_debuff_amount = 0
+
+            # --- Leviathan: Bio-Regen passive ---
+            if player.ship_class == "leviathan":
+                time_since_damage = self.current_time - player.last_damage_time
+                if time_since_damage >= BIO_REGEN_DELAY and player.hull < player.max_hull:
+                    player.hull = min(player.max_hull, player.hull + BIO_REGEN_RATE * dt)
 
             # --- Dreadnought: Yamato channeling ---
             if player.is_channeling:
