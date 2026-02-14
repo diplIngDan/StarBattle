@@ -441,6 +441,19 @@ class GameRoom:
                 x = float(msg.get("x", player.x))
                 z = float(msg.get("z", player.z))
                 self._use_bombardment(player, x, z)
+        elif player.ship_class == "leviathan":
+            if ability_id == "q":
+                self._use_bio_stasis(player)
+            elif ability_id == "w":
+                x = float(msg.get("x", player.x))
+                z = float(msg.get("z", player.z))
+                self._use_spore_cloud(player, x, z)
+            elif ability_id == "e":
+                self._use_spawn_mutalisks(player)
+            elif ability_id == "r":
+                x = float(msg.get("x", player.x))
+                z = float(msg.get("z", player.z))
+                self._use_bile_swell(player, x, z)
 
     # --- Vanguard Abilities ---
     def _use_warp(self, player: Player):
