@@ -151,6 +151,20 @@ class Player:
         self.channel_target_id = None
         self.repair_bots_timer = 0.0
 
+        # Leviathan abilities
+        self.bio_stasis_cd = 0.0
+        self.spore_cloud_cd = 0.0
+        self.mutalisk_cd = 0.0
+        self.bile_swell_cd = 0.0
+        self.bio_regen_timer = 0.0
+        self.last_damage_time = 0.0
+        self.armor_debuff_timer = 0.0
+        self.armor_debuff_amount = 0.0
+        self.stun_timer = 0.0
+        self.slow_timer = 0.0
+        self.slow_amount = 0.0
+        self.in_spore_cloud = False
+
         self.kills = 0
         self.deaths = 0
 
