@@ -771,6 +771,15 @@ class GameRoom:
                 player.repair_bots_cd = max(0, player.repair_bots_cd - dt)
             if player.bombardment_cd > 0:
                 player.bombardment_cd = max(0, player.bombardment_cd - dt)
+            # Cooldowns - Leviathan
+            if player.bio_stasis_cd > 0:
+                player.bio_stasis_cd = max(0, player.bio_stasis_cd - dt)
+            if player.spore_cloud_cd > 0:
+                player.spore_cloud_cd = max(0, player.spore_cloud_cd - dt)
+            if player.mutalisk_cd > 0:
+                player.mutalisk_cd = max(0, player.mutalisk_cd - dt)
+            if player.bile_swell_cd > 0:
+                player.bile_swell_cd = max(0, player.bile_swell_cd - dt)
 
         # --- Laser damage ---
         for player in self.players.values():
