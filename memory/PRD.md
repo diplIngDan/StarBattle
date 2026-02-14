@@ -34,8 +34,15 @@
    - E: Repair Bots (5% hull/sec for 6s, 25s CD)
    - R: Orbital Bombardment (AoE zone, 3s delay, 120 damage, 80 energy, 45s CD)
 
+3. **Leviathan** (Bio-Organic) - Hull 180, Shields 120, Energy 120
+   - Passive: Bio-Regen (heal hull after 5s without taking damage)
+   - Q: Bio-Stasis (stun target for 2.5s, 30 energy, 12s CD)
+   - W: Spore Cloud (AoE slow zone, 50% slow, 5s duration, 40 energy, 18s CD)
+   - E: Spawn Mutalisks (3 AI-controlled attackers, 12s lifetime, 50 energy, 30s CD)
+   - R: Bile Swell (AoE damage + 25% armor debuff for 6s, 100 damage, 85 energy, 50s CD)
+
 ### Features
-- Class selection in lobby
+- Class selection in lobby (3 ship classes)
 - Full 3D arena with Babylon.js (ships, beams, missiles, explosions, particles)
 - Server-authoritative physics (20Hz tick rate)
 - WebSocket multiplayer
@@ -46,11 +53,69 @@
 - Move indicator (torus on ground)
 - Glow effects (GlowLayer)
 - Particle effects (explosions, warp, shield flash, repair bots, bombardment)
+- Leviathan visual effects (bio-stasis web, spore cloud, mutalisk spawn, bile swell)
+- Debuff indicators (stunned, slowed, armor debuff)
+
+## File Structure
+```
+/app
+├── backend/
+│   ├── .env
+│   ├── requirements.txt
+│   ├── server.py       # FastAPI app hosting WebSocket game rooms
+│   ├── game_engine.py  # Core game logic (Ship classes, abilities, game loop)
+│   └── tests/
+│       └── test_leviathan.py
+├── frontend/
+│   ├── .env
+│   ├── package.json
+│   ├── public/
+│   │   └── index.html
+│   └── src/
+│       ├── App.js          # Main router
+│       ├── App.css         # Game styles
+│       ├── index.css       # Base styles
+│       ├── pages/
+│       │   ├── LobbyPage.js   # Ship selection
+│       │   └── GamePage.js    # Game container
+│       └── components/
+│           └── game/
+│               ├── GameCanvas.js  # Babylon.js 3D rendering
+│               ├── HUD.js         # Ship status and abilities
+│               ├── KillFeed.js    # Kill notifications
+│               └── Minimap.js     # Radar display
+├── memory/
+│   └── PRD.md
+└── test_reports/
+    ├── iteration_1.json
+    └── iteration_2.json
+```
 
 ## Prioritized Backlog
-- P0: Add more ship classes (Support/Healer, Interceptor/Assassin)
-- P1: Leaderboard with MongoDB persistence
-- P2: Multiple game rooms with room browser
-- P3: Sound effects and music
-- P4: Ship customization/skins
-- P5: Team-based game modes
+
+### P0 (Completed)
+- [x] Core multiplayer game foundation
+- [x] Vanguard ship class
+- [x] Dreadnought ship class  
+- [x] Leviathan ship class
+
+### P1 (Future)
+- [ ] Leaderboard with MongoDB persistence
+- [ ] Multiple game rooms with room browser
+- [ ] Sound effects and music
+
+### P2 (Future)
+- [ ] Additional ship classes (Support/Healer, Interceptor/Assassin)
+- [ ] Ship customization/skins
+- [ ] Team-based game modes
+
+## Testing Status
+- Backend: 100% (16/16 pytest tests passed)
+- Frontend: 100% (all UI tests passed)
+- Test files: `/app/backend/tests/test_leviathan.py`, `/app/test_reports/iteration_2.json`
+
+## Key Technical Details
+- WebSocket URL: `/api/ws/{room_id}?name={name}&ship_class={class}`
+- Game tick rate: 20Hz
+- Arena size: 300 units
+- Ship physics: high mass, low drag, slow rotation for tactical feel
