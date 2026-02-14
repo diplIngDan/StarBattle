@@ -21,16 +21,16 @@ SHIP_ACCELERATION = 0.08
 SHIP_DRAG = 0.98
 SHIP_ROTATION_SPEED = 1.5
 
-# Combat Constants
-MAX_HULL = 100.0
-MAX_SHIELDS = 100.0
-MAX_ENERGY = 100.0
+# Base Combat Constants
 SHIELD_REGEN_RATE = 8.0
 SHIELD_REGEN_DELAY = 5.0
 ENERGY_REGEN_RATE = 8.0
 LASER_DAMAGE = 20.0
 LASER_ENERGY_COST = 15.0
 LASER_RANGE = 80.0
+RESPAWN_TIME = 10.0
+
+# Vanguard Ability Constants
 WARP_DISTANCE = 25.0
 WARP_ENERGY_COST = 40.0
 WARP_COOLDOWN = 3.0
@@ -39,21 +39,60 @@ MISSILE_SPEED = 10.0
 MISSILE_COUNT = 5
 MISSILE_COOLDOWN = 10.0
 MISSILE_LIFETIME = 5.0
-RESPAWN_TIME = 10.0
+
+# Dreadnought Ability Constants
+EMERGENCY_SHIELDS_RESTORE = 300.0
+EMERGENCY_SHIELDS_CD = 20.0
+YAMATO_CHANNEL_TIME = 2.0
+YAMATO_DAMAGE = 150.0
+YAMATO_RANGE = 100.0
+YAMATO_CD = 15.0
+REPAIR_BOTS_DURATION = 6.0
+REPAIR_BOTS_HEAL_PCT = 0.05
+REPAIR_BOTS_CD = 25.0
+BOMBARDMENT_RADIUS = 40.0
+BOMBARDMENT_DELAY = 3.0
+BOMBARDMENT_DAMAGE = 120.0
+BOMBARDMENT_ENERGY_COST = 80.0
+BOMBARDMENT_CD = 45.0
+
+# Ship Class Definitions
+SHIP_CLASSES = {
+    "vanguard": {
+        "max_hull": 100.0,
+        "max_shields": 100.0,
+        "max_energy": 100.0,
+        "damage_reduction": 0.0,
+    },
+    "dreadnought": {
+        "max_hull": 150.0,
+        "max_shields": 200.0,
+        "max_energy": 100.0,
+        "damage_reduction": 0.15,
+    },
+}
 
 
 class Player:
-    def __init__(self, player_id: str, name: str):
+    def __init__(self, player_id: str, name: str, ship_class: str = "vanguard"):
         self.id = player_id
         self.name = name
+        self.ship_class = ship_class
+
+        cfg = SHIP_CLASSES.get(ship_class, SHIP_CLASSES["vanguard"])
+        self.max_hull = cfg["max_hull"]
+        self.max_shields = cfg["max_shields"]
+        self.max_energy = cfg["max_energy"]
+        self.damage_reduction = cfg["damage_reduction"]
+
         self.x = 0.0
         self.z = 0.0
         self.rotation = 0.0
         self.vx = 0.0
         self.vz = 0.0
-        self.hull = MAX_HULL
-        self.shields = MAX_SHIELDS
-        self.energy = MAX_ENERGY
+        self.hull = self.max_hull
+        self.shields = self.max_shields
+        self.energy = self.max_energy
         self.alive = True
         self.respawn_timer = 0.0
         self.move_target_x = 0.0
@@ -64,8 +103,21 @@ class Player:
         self.fire_target_z = 0.0
         self.shield_broken = False
         self.shield_regen_timer = 0.0
+
+        # Vanguard abilities
         self.warp_cooldown = 0.0
         self.missile_cooldown = 0.0
+
+        # Dreadnought abilities
+        self.emergency_shields_cd = 0.0
+        self.yamato_cd = 0.0
+        self.repair_bots_cd = 0.0
+        self.bombardment_cd = 0.0
+        self.is_channeling = False
+        self.channel_timer = 0.0
+        self.channel_target_id = None
+        self.repair_bots_timer = 0.0
+
         self.kills = 0
         self.deaths = 0
 
@@ -75,38 +127,63 @@ class Player:
         self.rotation = random.uniform(0, math.pi * 2)
         self.vx = 0.0
         self.vz = 0.0
-        self.hull = MAX_HULL
-        self.shields = MAX_SHIELDS
-        self.energy = MAX_ENERGY
+        self.hull = self.max_hull
+        self.shields = self.max_shields
+        self.energy = self.max_energy
         self.alive = True
         self.is_firing = False
         self.shield_broken = False
         self.shield_regen_timer = 0.0
         self.has_move_target = False
         self.respawn_timer = 0.0
+        self.warp_cooldown = 0.0
+        self.missile_cooldown = 0.0
+        self.emergency_shields_cd = 0.0
+        self.yamato_cd = 0.0
+        self.repair_bots_cd = 0.0
+        self.bombardment_cd = 0.0
+        self.is_channeling = False
+        self.channel_timer = 0.0
+        self.channel_target_id = None
+        self.repair_bots_timer = 0.0
 
     def to_dict(self):
-        return {
+        d = {
             "id": self.id,
             "name": self.name,
+            "shipClass": self.ship_class,
             "x": round(self.x, 2),
             "z": round(self.z, 2),
             "rotation": round(self.rotation, 3),
             "vx": round(self.vx, 3),
             "vz": round(self.vz, 3),
             "hull": round(self.hull, 1),
+            "maxHull": self.max_hull,
             "shields": round(self.shields, 1),
+            "maxShields": self.max_shields,
             "energy": round(self.energy, 1),
+            "maxEnergy": self.max_energy,
             "alive": self.alive,
             "isFiring": self.is_firing,
             "fireTargetX": round(self.fire_target_x, 2),
             "fireTargetZ": round(self.fire_target_z, 2),
             "respawnTimer": round(self.respawn_timer, 1),
-            "warpCooldown": round(self.warp_cooldown, 1),
-            "missileCooldown": round(self.missile_cooldown, 1),
             "kills": self.kills,
             "deaths": self.deaths,
         }
+        if self.ship_class == "vanguard":
+            d["warpCooldown"] = round(self.warp_cooldown, 1)
+            d["missileCooldown"] = round(self.missile_cooldown, 1)
+        elif self.ship_class == "dreadnought":
+            d["emergencyShieldsCd"] = round(self.emergency_shields_cd, 1)
+            d["yamatoCd"] = round(self.yamato_cd, 1)
+            d["repairBotsCd"] = round(self.repair_bots_cd, 1)
+            d["bombardmentCd"] = round(self.bombardment_cd, 1)
+            d["isChanneling"] = self.is_channeling
+            d["channelTimer"] = round(self.channel_timer, 2)
+            d["channelTargetId"] = self.channel_target_id
+            d["repairBotsTimer"] = round(self.repair_bots_timer, 1)
+        return d
 
 
 class Missile:
@@ -129,11 +206,32 @@ class Missile:
         }
 
 
+class BombardmentZone:
+    def __init__(self, zone_id: str, owner_id: str, x: float, z: float):
+        self.id = zone_id
+        self.owner_id = owner_id
+        self.x = x
+        self.z = z
+        self.radius = BOMBARDMENT_RADIUS
+        self.timer = BOMBARDMENT_DELAY
+        self.exploded = False
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "x": round(self.x, 2),
+            "z": round(self.z, 2),
+            "radius": self.radius,
+            "timer": round(self.timer, 2),
+        }
+
+
 class GameRoom:
     def __init__(self, room_id: str):
         self.id = room_id
         self.players: Dict[str, Player] = {}
         self.missiles: List[Missile] = []
+        self.bombardment_zones: List[BombardmentZone] = []
         self.effects: List[dict] = []
         self.connections: Dict[str, any] = {}
         self.running = False
@@ -141,8 +239,8 @@ class GameRoom:
         self._task = None
         self._pending_messages: List[tuple] = []
 
-    def add_player(self, player_id: str, name: str, websocket) -> Player:
-        player = Player(player_id, name)
+    def add_player(self, player_id: str, name: str, websocket, ship_class: str = "vanguard") -> Player:
+        player = Player(player_id, name, ship_class)
         player.spawn()
         self.players[player_id] = player
         self.connections[player_id] = websocket
@@ -190,32 +288,48 @@ class GameRoom:
             if not player or not player.alive:
                 continue
 
+            # Block all input during Yamato channeling
+            if player.is_channeling:
+                continue
+
             msg_type = msg.get("type")
 
             if msg_type == "move":
                 player.move_target_x = float(msg.get("x", 0))
                 player.move_target_z = float(msg.get("z", 0))
                 player.has_move_target = True
-
             elif msg_type == "fire_start":
                 player.is_firing = True
                 player.fire_target_x = float(msg.get("x", 0))
                 player.fire_target_z = float(msg.get("z", 0))
-
             elif msg_type == "fire_stop":
                 player.is_firing = False
-
             elif msg_type == "fire_aim":
                 player.fire_target_x = float(msg.get("x", 0))
                 player.fire_target_z = float(msg.get("z", 0))
-
             elif msg_type == "ability":
                 ability_id = msg.get("id")
-                if ability_id == "warp":
-                    self._use_warp(player)
-                elif ability_id == "missile":
-                    self._use_missiles(player)
+                self._handle_ability(player, ability_id, msg)
 
+    def _handle_ability(self, player: Player, ability_id: str, msg: dict):
+        if player.ship_class == "vanguard":
+            if ability_id == "q":
+                self._use_warp(player)
+            elif ability_id == "w":
+                self._use_missiles(player)
+        elif player.ship_class == "dreadnought":
+            if ability_id == "q":
+                self._use_emergency_shields(player)
+            elif ability_id == "w":
+                self._use_yamato(player)
+            elif ability_id == "e":
+                self._use_repair_bots(player)
+            elif ability_id == "r":
+                x = float(msg.get("x", player.x))
+                z = float(msg.get("z", player.z))
+                self._use_bombardment(player, x, z)
+
+    # --- Vanguard Abilities ---
     def _use_warp(self, player: Player):
         if player.warp_cooldown > 0 or player.energy < WARP_ENERGY_COST:
             return
@@ -227,43 +341,81 @@ class GameRoom:
         player.z += dz * WARP_DISTANCE
         player.x = max(-ARENA_SIZE, min(ARENA_SIZE, player.x))
         player.z = max(-ARENA_SIZE, min(ARENA_SIZE, player.z))
-        self.effects.append({
-            "type": "warp",
-            "playerId": player.id,
-            "x": player.x,
-            "z": player.z,
-        })
+        self.effects.append({"type": "warp", "playerId": player.id, "x": player.x, "z": player.z})
 
     def _use_missiles(self, player: Player):
         if player.missile_cooldown > 0:
             return
         player.missile_cooldown = MISSILE_COOLDOWN
-
-        nearest = None
-        nearest_dist = float('inf')
-        for other in self.players.values():
-            if other.id == player.id or not other.alive:
-                continue
-            dist = math.sqrt((other.x - player.x)**2 + (other.z - player.z)**2)
-            if dist < nearest_dist:
-                nearest = other
-                nearest_dist = dist
-
+        nearest = self._find_nearest_enemy(player)
         if nearest is None:
             return
-
         for i in range(MISSILE_COUNT):
             angle_offset = (i - MISSILE_COUNT // 2) * 0.3
             missile = Missile(
-                str(uuid.uuid4())[:8],
-                player.id,
+                str(uuid.uuid4())[:8], player.id,
                 player.x + math.sin(player.rotation + angle_offset) * 2,
                 player.z + math.cos(player.rotation + angle_offset) * 2,
                 nearest.id
             )
             self.missiles.append(missile)
 
+    # --- Dreadnought Abilities ---
+    def _use_emergency_shields(self, player: Player):
+        if player.emergency_shields_cd > 0:
+            return
+        player.emergency_shields_cd = EMERGENCY_SHIELDS_CD
+        player.shields = min(player.max_shields, player.shields + EMERGENCY_SHIELDS_RESTORE)
+        player.shield_broken = False
+        self.effects.append({"type": "emergency_shields", "playerId": player.id, "x": player.x, "z": player.z})
+
+    def _use_yamato(self, player: Player):
+        if player.yamato_cd > 0 or player.is_channeling:
+            return
+        nearest = self._find_nearest_enemy(player, max_range=YAMATO_RANGE)
+        if nearest is None:
+            return
+        player.yamato_cd = YAMATO_CD
+        player.is_channeling = True
+        player.channel_timer = YAMATO_CHANNEL_TIME
+        player.channel_target_id = nearest.id
+        player.is_firing = False
+        player.has_move_target = False
+        self.effects.append({"type": "yamato_channel", "playerId": player.id, "targetId": nearest.id})
+
+    def _use_repair_bots(self, player: Player):
+        if player.repair_bots_cd > 0 or player.repair_bots_timer > 0:
+            return
+        player.repair_bots_cd = REPAIR_BOTS_CD
+        player.repair_bots_timer = REPAIR_BOTS_DURATION
+        self.effects.append({"type": "repair_bots", "playerId": player.id})
+
+    def _use_bombardment(self, player: Player, x: float, z: float):
+        if player.bombardment_cd > 0 or player.energy < BOMBARDMENT_ENERGY_COST:
+            return
+        player.bombardment_cd = BOMBARDMENT_CD
+        player.energy -= BOMBARDMENT_ENERGY_COST
+        x = max(-ARENA_SIZE, min(ARENA_SIZE, x))
+        z = max(-ARENA_SIZE, min(ARENA_SIZE, z))
+        zone = BombardmentZone(str(uuid.uuid4())[:8], player.id, x, z)
+        self.bombardment_zones.append(zone)
+        self.effects.append({"type": "bombardment_mark", "x": x, "z": z, "radius": BOMBARDMENT_RADIUS, "ownerId": player.id})
+
+    # --- Helpers ---
+    def _find_nearest_enemy(self, player: Player, max_range: float = float('inf')) -> Optional[Player]:
+        nearest = None
+        nearest_dist = float('inf')
+        for other in self.players.values():
+            if other.id == player.id or not other.alive:
+                continue
+            dist = math.sqrt((other.x - player.x) ** 2 + (other.z - player.z) ** 2)
+            if dist < nearest_dist and dist < max_range:
+                nearest = other
+                nearest_dist = dist
+        return nearest
+
     def _update(self, dt: float):
+        # Update each player
         for player in self.players.values():
             if not player.alive:
                 player.respawn_timer -= dt
@@ -272,12 +424,35 @@ class GameRoom:
                     self.effects.append({"type": "respawn", "playerId": player.id})
                 continue
 
-            # Movement physics
-            if player.has_move_target:
+            # --- Dreadnought: Yamato channeling ---
+            if player.is_channeling:
+                player.channel_timer -= dt
+                player.vx = 0.0
+                player.vz = 0.0
+                player.has_move_target = False
+                if player.channel_timer <= 0:
+                    target = self.players.get(player.channel_target_id)
+                    if target and target.alive:
+                        self._apply_damage(target, YAMATO_DAMAGE, player)
+                        self.effects.append({
+                            "type": "yamato_fire", "playerId": player.id, "targetId": target.id,
+                            "startX": player.x, "startZ": player.z,
+                            "endX": target.x, "endZ": target.z,
+                        })
+                    player.is_channeling = False
+                    player.channel_target_id = None
+
+            # --- Dreadnought: Repair Bots ---
+            if player.repair_bots_timer > 0:
+                player.repair_bots_timer -= dt
+                heal = player.max_hull * REPAIR_BOTS_HEAL_PCT * dt
+                player.hull = min(player.max_hull, player.hull + heal)
+
+            # --- Movement physics ---
+            if player.has_move_target and not player.is_channeling:
                 dx = player.move_target_x - player.x
                 dz = player.move_target_z - player.z
                 dist_to_target = math.sqrt(dx * dx + dz * dz)
-
                 if dist_to_target > 2.0:
                     desired_angle = math.atan2(dx, dz)
                     angle_diff = desired_angle - player.rotation
@@ -285,15 +460,12 @@ class GameRoom:
                         angle_diff -= 2 * math.pi
                     while angle_diff < -math.pi:
                         angle_diff += 2 * math.pi
-
                     rotation_amount = SHIP_ROTATION_SPEED * dt
                     if abs(angle_diff) < rotation_amount:
                         player.rotation = desired_angle
                     else:
                         player.rotation += rotation_amount * (1 if angle_diff > 0 else -1)
-
                     player.rotation = player.rotation % (2 * math.pi)
-
                     thrust_x = math.sin(player.rotation) * SHIP_ACCELERATION
                     thrust_z = math.cos(player.rotation) * SHIP_ACCELERATION
                     player.vx += thrust_x
@@ -304,18 +476,14 @@ class GameRoom:
             # Drag
             player.vx *= SHIP_DRAG
             player.vz *= SHIP_DRAG
-
-            # Clamp speed
             speed = math.sqrt(player.vx ** 2 + player.vz ** 2)
             if speed > SHIP_MAX_SPEED:
                 player.vx = (player.vx / speed) * SHIP_MAX_SPEED
                 player.vz = (player.vz / speed) * SHIP_MAX_SPEED
 
-            # Update position
+            # Position
             player.x += player.vx
             player.z += player.vz
-
-            # Arena bounds
             if abs(player.x) > ARENA_SIZE:
                 player.x = max(-ARENA_SIZE, min(ARENA_SIZE, player.x))
                 player.vx *= -0.5
@@ -323,14 +491,13 @@ class GameRoom:
                 player.z = max(-ARENA_SIZE, min(ARENA_SIZE, player.z))
                 player.vz *= -0.5
 
-            # Shield regeneration
+            # Shield regen
             if player.shield_broken:
                 player.shield_regen_timer -= dt
                 if player.shield_regen_timer <= 0:
                     player.shield_broken = False
-
-            if not player.shield_broken and player.shields < MAX_SHIELDS:
-                player.shields = min(MAX_SHIELDS, player.shields + SHIELD_REGEN_RATE * dt)
+            if not player.shield_broken and player.shields < player.max_shields:
+                player.shields = min(player.max_shields, player.shields + SHIELD_REGEN_RATE * dt)
 
             # Energy
             if player.is_firing:
@@ -339,69 +506,62 @@ class GameRoom:
                     player.energy = 0
                     player.is_firing = False
             else:
-                player.energy = min(MAX_ENERGY, player.energy + ENERGY_REGEN_RATE * dt)
+                player.energy = min(player.max_energy, player.energy + ENERGY_REGEN_RATE * dt)
 
-            # Cooldowns
+            # Cooldowns - Vanguard
             if player.warp_cooldown > 0:
                 player.warp_cooldown = max(0, player.warp_cooldown - dt)
             if player.missile_cooldown > 0:
                 player.missile_cooldown = max(0, player.missile_cooldown - dt)
+            # Cooldowns - Dreadnought
+            if player.emergency_shields_cd > 0:
+                player.emergency_shields_cd = max(0, player.emergency_shields_cd - dt)
+            if player.yamato_cd > 0:
+                player.yamato_cd = max(0, player.yamato_cd - dt)
+            if player.repair_bots_cd > 0:
+                player.repair_bots_cd = max(0, player.repair_bots_cd - dt)
+            if player.bombardment_cd > 0:
+                player.bombardment_cd = max(0, player.bombardment_cd - dt)
 
-        # Laser damage
+        # --- Laser damage ---
         for player in self.players.values():
             if not player.alive or not player.is_firing:
                 continue
-
             dx = player.fire_target_x - player.x
             dz = player.fire_target_z - player.z
             ray_len = math.sqrt(dx * dx + dz * dz)
             if ray_len < 0.1:
                 continue
-
             ndx = dx / ray_len
             ndz = dz / ray_len
-
             for other in self.players.values():
                 if other.id == player.id or not other.alive:
                     continue
-
                 to_x = other.x - player.x
                 to_z = other.z - player.z
                 t = to_x * ndx + to_z * ndz
                 if t < 0 or t > LASER_RANGE:
                     continue
-
                 closest_x = player.x + ndx * t
                 closest_z = player.z + ndz * t
                 dist = math.sqrt((other.x - closest_x) ** 2 + (other.z - closest_z) ** 2)
-
                 if dist < SHIP_RADIUS * 2.5:
                     self._apply_damage(other, LASER_DAMAGE * dt, player)
 
-        # Missiles
+        # --- Missiles ---
         missiles_to_remove = []
         for missile in self.missiles:
             if not missile.alive:
                 missiles_to_remove.append(missile)
                 continue
-
             missile.lifetime -= dt
             if missile.lifetime <= 0:
                 missile.alive = False
                 missiles_to_remove.append(missile)
                 continue
-
             target = self.players.get(missile.target_id)
             if not target or not target.alive:
-                nearest = None
-                nearest_dist = float('inf')
-                for p in self.players.values():
-                    if p.id == missile.owner_id or not p.alive:
-                        continue
-                    d = math.sqrt((p.x - missile.x) ** 2 + (p.z - missile.z) ** 2)
-                    if d < nearest_dist:
-                        nearest = p
-                        nearest_dist = d
+                nearest = self._find_nearest_enemy_for_missile(missile)
                 if nearest:
                     missile.target_id = nearest.id
                     target = nearest
@@ -409,33 +569,61 @@ class GameRoom:
                     missile.alive = False
                     missiles_to_remove.append(missile)
                     continue
-
             mdx = target.x - missile.x
             mdz = target.z - missile.z
             dist = math.sqrt(mdx * mdx + mdz * mdz)
-
             if dist < SHIP_RADIUS * 2:
                 owner = self.players.get(missile.owner_id)
                 self._apply_damage(target, MISSILE_DAMAGE, owner)
                 missile.alive = False
                 missiles_to_remove.append(missile)
-                self.effects.append({
-                    "type": "explosion",
-                    "x": missile.x,
-                    "z": missile.z,
-                    "size": "small"
-                })
+                self.effects.append({"type": "explosion", "x": missile.x, "z": missile.z, "size": "small"})
             else:
                 missile.x += (mdx / dist) * MISSILE_SPEED * dt
                 missile.z += (mdz / dist) * MISSILE_SPEED * dt
-
         for m in missiles_to_remove:
             if m in self.missiles:
                 self.missiles.remove(m)
 
+        # --- Bombardment Zones ---
+        zones_to_remove = []
+        for zone in self.bombardment_zones:
+            if zone.exploded:
+                zones_to_remove.append(zone)
+                continue
+            zone.timer -= dt
+            if zone.timer <= 0:
+                zone.exploded = True
+                owner = self.players.get(zone.owner_id)
+                for player in self.players.values():
+                    if player.id == zone.owner_id or not player.alive:
+                        continue
+                    dist = math.sqrt((player.x - zone.x) ** 2 + (player.z - zone.z) ** 2)
+                    if dist < zone.radius:
+                        self._apply_damage(player, BOMBARDMENT_DAMAGE, owner)
+                self.effects.append({"type": "bombardment_explode", "x": zone.x, "z": zone.z, "radius": zone.radius})
+                zones_to_remove.append(zone)
+        for z in zones_to_remove:
+            if z in self.bombardment_zones:
+                self.bombardment_zones.remove(z)
+
+    def _find_nearest_enemy_for_missile(self, missile: Missile) -> Optional[Player]:
+        nearest = None
+        nearest_dist = float('inf')
+        for p in self.players.values():
+            if p.id == missile.owner_id or not p.alive:
+                continue
+            d = math.sqrt((p.x - missile.x) ** 2 + (p.z - missile.z) ** 2)
+            if d < nearest_dist:
+                nearest = p
+                nearest_dist = d
+        return nearest
+
     def _apply_damage(self, target: Player, damage: float, attacker: Optional[Player] = None):
         if not target.alive:
             return
+        # Dreadnought passive: Reinforced Hull - 15% damage reduction
+        damage *= (1 - target.damage_reduction)
 
         if target.shields > 0:
             shield_dmg = min(target.shields, damage)
@@ -444,31 +632,21 @@ class GameRoom:
             if target.shields <= 0:
                 target.shield_broken = True
                 target.shield_regen_timer = SHIELD_REGEN_DELAY
-
         if damage > 0:
             target.hull -= damage
-
         if target.hull <= 0:
             target.hull = 0
             target.alive = False
             target.respawn_timer = RESPAWN_TIME
             target.deaths += 1
             target.is_firing = False
-
+            target.is_channeling = False
+            target.channel_target_id = None
+            target.repair_bots_timer = 0
             if attacker:
                 attacker.kills += 1
-
-            self.effects.append({
-                "type": "explosion",
-                "x": target.x,
-                "z": target.z,
-                "size": "large",
-            })
-            self.effects.append({
-                "type": "kill",
-                "killer": attacker.name if attacker else "Unknown",
-                "victim": target.name,
-            })
+            self.effects.append({"type": "explosion", "x": target.x, "z": target.z, "size": "large"})
+            self.effects.append({"type": "kill", "killer": attacker.name if attacker else "Unknown", "victim": target.name})
 
     async def _broadcast_state(self):
         state = {
@@ -476,19 +654,17 @@ class GameRoom:
             "tick": self.tick,
             "players": [p.to_dict() for p in self.players.values()],
             "missiles": [m.to_dict() for m in self.missiles if m.alive],
+            "bombardments": [b.to_dict() for b in self.bombardment_zones if not b.exploded],
             "effects": self.effects.copy(),
         }
         self.effects.clear()
-
         state_json = json.dumps(state)
-
         disconnected = []
         for player_id, ws in self.connections.items():
             try:
                 await ws.send_text(state_json)
             except Exception:
                 disconnected.append(player_id)
-
         for player_id in disconnected:
             self.remove_player(player_id)
 
