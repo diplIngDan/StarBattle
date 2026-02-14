@@ -1,0 +1,136 @@
+<analysis>**original_problem_statement:**
+The user wants to create a 3D top-down multiplayer space combat game inspired by Star Battle.
+
+**PRODUCT REQUIREMENTS:**
+-   **Engine:** Babylon.js
+-   **Networking:** Server-authoritative multiplayer (Colyseus).
+-   **Perspective:** Top-down camera following the player's ship.
+-   **Movement:** Click-to-move with high mass and low drag for a heavy, tactical feel.
+-   **Core Stats:** Hull (HP), Shields, Energy.
+-   **Initial Ship Abilities:**
+    -   Main Weapon: Long-range laser beam.
+    -   Ability 1 (Q): Warp Jump (short-range teleport).
+    -   Ability 2 (W): Missile Barrage (5 seeking missiles).
+-   **Multiplayer:** Synchronize positions, stats, and effects. On death (Hull=0), trigger an explosion and respawn after 10 seconds.
+-   **Ship Class 1: Dreadnought:**
+    -   Passive:  (-15% incoming damage).
+    -   Ability (Q):  (Instantly restore 300 Shield points).
+    -   Ability (W):  (Channeled high-damage beam).
+    -   Ability (E):  (Heal Hull HP over time).
+    -   Ultimate (R):  (Large AoE damage).
+-   **Ship Class 2: Leviathan:**
+    -   Passive:  (Heal Hull HP after not taking damage for 5s).
+    -   Ability (Q):  (Stuns a target).
+    -   Ability (W):  (AoE slow and stealth).
+    -   Ability (E):  (Summon 3 AI-controlled attackers).
+    -   Ultimate (R):  (AoE damage with armor reduction debuff).
+
+**User's preferred language**: English
+
+**what currently exists?**
+A functional multiplayer space combat game foundation using Babylon.js for the frontend and a Python/Colyseus backend for authoritative server logic. It includes a lobby for ship class selection and a game arena where players can control their ships. The Dreadnought class and a default Interceptor class are implemented. Multiplayer state synchronization (position, stats) is working. A critical bug in the state broadcasting logic was found and fixed by the testing agent in the previous session.
+
+**Last working item**:
+-   Last item agent was working: The agent was preparing to implement the new Leviathan ship class. It had just finished reviewing the relevant game logic files (, , ) to plan the necessary code changes.
+-   Status: NOT STARTED
+-   Agent Testing Done: N
+-   Which testing method agent to use? both
+-   User Testing Done: N
+
+**All Pending/In progress Issue list**:
+There are no pending issues. All work is focused on new feature development.
+
+**In progress Task List**:
+There are no tasks currently in progress.
+
+**Upcoming and Future Tasks**
+**Upcoming Tasks:**
+-   **P0: Implement 'Leviathan' Ship Class:**
+    -   This is the highest priority task.
+    -   **Backend ():** Add the 'Leviathan' class with its unique passive (), abilities (, , ), and ultimate (). Implement the logic for AI-controlled Mutalisks.
+    -   **Frontend (, ):** Add the Leviathan to the ship selection screen.
+    -   **Frontend ():** Create and handle the visual effects for all of Leviathan's abilities (stun projectile, spore cloud, mutalisk models, bile swell projectile/explosion).
+    -   **Frontend (, ):** Update the in-game HUD to display Leviathan's abilities and cooldowns.
+
+**Future Tasks:**
+-   **P1: Implement Player Respawn Mechanic:**
+    -   As per the original request, when a ship's hull reaches 0, it should create a large explosion and respawn at a starting point after a 10-second delay. This is currently not implemented.
+    -   Files to modify:  (backend game logic),  (frontend explosion effect).
+-   **P2: Implement Base 'Interceptor' Abilities:**
+    -   The original spec requested a Warp Jump and Missile Barrage for the default ship. These were skipped to focus on the Dreadnought. This task involves adding these abilities to the base Interceptor class.
+    -   Files to modify: , , .
+
+**Completed work in this session**
+-   **Multiplayer Game Foundation:** Established the core client-server architecture using React/Babylon.js and Python/Colyseus over WebSockets.
+-   **Lobby and Class Selection:** Created a pre-game lobby where players can choose their ship class.
+-   **'Dreadnought' Class Implementation:** Successfully integrated the Dreadnought ship with its unique passive () and four abilities (, , , ).
+-   **Critical Bug Fix:** Resolved a server-side bug where the server would crash if a player disconnected while the game state was being broadcast. The fix involved iterating over a copy of the client list.
+
+**Earlier issues found/mentioned but not fixed**
+None.
+
+**Known issue recurrence from previous fork**
+None.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Backend:** Python, FastAPI, Colyseus (for WebSocket-based multiplayer state management).
+-   **Frontend:** React, Babylon.js (for 3D rendering).
+-   **Architecture:** Server-authoritative game model. The server () runs the simulation tick, processes inputs, and broadcasts the state. The client () renders the state received from the server.
+-   **Networking:** WebSockets.
+
+**key DB schema**
+-   No database is being used. The game state is stored in-memory on the server for each game room.
+
+**changes in tech stack**
+-   WebTransport was initially considered but rejected due to environment limitations. The project uses WebSockets instead, which is suitable for the game's tactical pace.
+
+**All files of reference**
+-   : Hosts the Colyseus game rooms and handles client connections.
+-   : Contains all server-side game logic, including ship classes, stats, abilities, and the main game loop. **This will be heavily modified for the Leviathan class.**
+-   : Manages all 3D rendering, including ships, projectiles, and special effects. **This will need new visuals for the Leviathan.**
+-   : The component for the ship selection screen. **Needs a 'Leviathan' option.**
+-   : Manages the 2D HUD overlay. **Needs to show Leviathan's abilities.**
+
+**Areas that need refactoring**:
+-   The ship class logic in  is currently managed with if/else statements. As a third class is added, consider refactoring this into a more scalable, object-oriented structure (e.g., a base  class with subclasses for , , ) to simplify adding more ships in the future.
+
+**key api endpoints**
+-   Communication is handled via a single WebSocket connection managed by Colyseus, not traditional REST API endpoints.
+
+**Critical Info for New Agent**
+-   You are about to implement the 'Leviathan' ship class. Start by reviewing the plan in the previous agent's thoughts and the existing class implementation in .
+-   The implementation will require coordinated changes across the backend () and frontend (, , ).
+-   After implementing the Leviathan class, it is crucial to run the  to ensure the new functionality works and no regressions were introduced.
+-   The current method of adding ship classes is not very scalable. Be mindful that a refactor might be beneficial after this implementation.
+
+**documents and test reports created in this job**
+-   
+-   
+-   
+
+**Last 10 User Messages and any pending HUMAN messages**
+-   **User Message (Latest):** Provided the detailed specification for a new Leviathan ship class, including its passive, three abilities, and an ultimate ability. This is the next task to be implemented. (Status: Not Started)
+
+**Project Health Check:**
+-   **Working:** The core game loop, multiplayer synchronization, and the Dreadnought class are functional.
+-   **Broken:** Nothing is currently broken.
+-   **Mocked:** No components are mocked.
+
+**3rd Party Integrations**
+-   Babylon.js (v5.0.0 via CDN) - 3D Rendering Engine
+-   Colyseus (Python server & JS client) - WebSocket-based Multiplayer Framework
+
+**Testing status**
+-   Testing agent used after significant changes: YES
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: None. The testing agent uses its own internal test suites.
+-   Known regressions: A critical server crash bug was found and fixed by the testing agent. No known regressions exist now.
+
+**Credentials to test flow:**
+No credentials are required; anonymous play is enabled.
+
+**What agent forgot to execute**
+-   The original problem statement included a **player respawn mechanic** (10-second delay after explosion) and two abilities for the default ship (**Warp Jump** and **Missile Barrage**). These features were not implemented and should be added to the backlog.</analysis>
