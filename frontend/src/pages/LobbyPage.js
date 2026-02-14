@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Crosshair, Rocket, Zap, Shield } from 'lucide-react';
+import { Crosshair, Rocket, Zap, Shield, Bug } from 'lucide-react';
 
 const NEBULA_BG = "https://images.unsplash.com/photo-1615392030676-6c532fe0c302?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwxfHxzY2ktZmklMjBzcGFjZSUyMGJhY2tncm91bmQlMjBkaWdpdGFsJTIwYXJ0JTIwYmx1ZSUyMHB1cnBsZSUyMG5lYnVsYXxlbnwwfHx8fDE3NzA5Nzc0NzR8MA&ixlib=rb-4.1.0&q=85";
 
@@ -30,7 +30,7 @@ export default function LobbyPage() {
           <h1 className="lobby-title">WARP BATTLE</h1>
           <p className="lobby-subtitle">TACTICAL SPACE COMBAT</p>
 
-          <div className="class-selection" data-testid="class-selection">
+          <div className="class-selection three-classes" data-testid="class-selection">
             <div
               className={`class-card ${shipClass === 'vanguard' ? 'selected' : ''}`}
               data-testid="class-vanguard"
@@ -59,6 +59,22 @@ export default function LobbyPage() {
                 <span>R: Bombardment</span>
               </div>
               <div className="class-passive">-15% DMG TAKEN</div>
+            </div>
+            <div
+              className={`class-card leviathan ${shipClass === 'leviathan' ? 'selected' : ''}`}
+              data-testid="class-leviathan"
+              onClick={() => setShipClass('leviathan')}
+            >
+              <div className="class-icon leviathan-icon"><Bug size={22} /></div>
+              <h3>LEVIATHAN</h3>
+              <p className="class-role">Bio-Organic</p>
+              <div className="class-abilities">
+                <span>Q: Bio-Stasis</span>
+                <span>W: Spore Cloud</span>
+                <span>E: Mutalisks</span>
+                <span>R: Bile Swell</span>
+              </div>
+              <div className="class-passive leviathan-passive">BIO-REGEN</div>
             </div>
           </div>
 
