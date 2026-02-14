@@ -230,6 +230,9 @@ class Player:
             "respawnTimer": round(self.respawn_timer, 1),
             "kills": self.kills,
             "deaths": self.deaths,
+            "stunTimer": round(self.stun_timer, 2),
+            "slowTimer": round(self.slow_timer, 2),
+            "armorDebuffTimer": round(self.armor_debuff_timer, 2),
         }
         if self.ship_class == "vanguard":
             d["warpCooldown"] = round(self.warp_cooldown, 1)
@@ -243,6 +246,12 @@ class Player:
             d["channelTimer"] = round(self.channel_timer, 2)
             d["channelTargetId"] = self.channel_target_id
             d["repairBotsTimer"] = round(self.repair_bots_timer, 1)
+        elif self.ship_class == "leviathan":
+            d["bioStasisCd"] = round(self.bio_stasis_cd, 1)
+            d["sporeCloudCd"] = round(self.spore_cloud_cd, 1)
+            d["mutaliskCd"] = round(self.mutalisk_cd, 1)
+            d["bileSwellCd"] = round(self.bile_swell_cd, 1)
+            d["bioRegenTimer"] = round(self.bio_regen_timer, 2)
         return d
 
 
