@@ -865,6 +865,72 @@ class GameRoom:
             if z in self.bombardment_zones:
                 self.bombardment_zones.remove(z)
 
+        # --- Spore Clouds ---
+        clouds_to_remove = []
+        for cloud in self.spore_clouds:
+            cloud.timer -= dt
+            if cloud.timer <= 0:
+                clouds_to_remove.append(cloud)
+                continue
+            # Apply slow effect to enemies in cloud
+            for player in self.players.values():
+                if player.id == cloud.owner_id or not player.alive:
+                    continue
+                dist = math.sqrt((player.x - cloud.x) ** 2 + (player.z - cloud.z) ** 2)
+                if dist < cloud.radius:
+                    player.slow_timer = 0.5  # Refreshes while in cloud
+                    player.slow_amount = SPORE_CLOUD_SLOW_PCT
+                    player.in_spore_cloud = True
+        for c in clouds_to_remove:
+            if c in self.spore_clouds:
+                self.spore_clouds.remove(c)
+
+        # --- Mutalisks (AI-controlled) ---
+        mutalisks_to_remove = []
+        for mutalisk in self.mutalisks:
+            if not mutalisk.alive:
+                mutalisks_to_remove.append(mutalisk)
+                continue
+            mutalisk.lifetime -= dt
+            if mutalisk.lifetime <= 0:
+                mutalisk.alive = False
+                mutalisks_to_remove.append(mutalisk)
+                self.effects.append({"type": "mutalisk_death", "x": mutalisk.x, "z": mutalisk.z})
+                continue
+            # Find nearest enemy
+            nearest = None
+            nearest_dist = float('inf')
+            for p in self.players.values():
+                if p.id == mutalisk.owner_id or not p.alive:
+                    continue
+                d = math.sqrt((p.x - mutalisk.x) ** 2 + (p.z - mutalisk.z) ** 2)
+                if d < nearest_dist:
+                    nearest = p
+                    nearest_dist = d
+            if nearest:
+                # Move toward target
+                mdx = nearest.x - mutalisk.x
+                mdz = nearest.z - mutalisk.z
+                dist = math.sqrt(mdx * mdx + mdz * mdz)
+                if dist > MUTALISK_ATTACK_RANGE:
+                    mutalisk.x += (mdx / dist) * MUTALISK_SPEED * dt
+                    mutalisk.z += (mdz / dist) * MUTALISK_SPEED * dt
+                else:
+                    # Attack
+                    mutalisk.attack_cooldown -= dt
+                    if mutalisk.attack_cooldown <= 0:
+                        owner = self.players.get(mutalisk.owner_id)
+                        self._apply_damage(nearest, MUTALISK_DAMAGE, owner)
+                        mutalisk.attack_cooldown = 0.8
+                        self.effects.append({
+                            "type": "mutalisk_attack",
+                            "x": mutalisk.x, "z": mutalisk.z,
+                            "targetX": nearest.x, "targetZ": nearest.z
+                        })
+        for m in mutalisks_to_remove:
+            if m in self.mutalisks:
+                self.mutalisks.remove(m)
+
     def _find_nearest_enemy_for_missile(self, missile: Missile) -> Optional[Player]:
         nearest = None
         nearest_dist = float('inf')
