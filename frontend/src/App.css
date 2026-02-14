@@ -64,6 +64,80 @@
   margin: 0.5rem 0 2.5rem;
 }
 
+/* === CLASS SELECTION === */
+.class-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 1.2rem;
+}
+
+.class-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 12px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.class-card:hover {
+  border-color: rgba(0, 243, 255, 0.25);
+}
+
+.class-card.selected {
+  border-color: #00f3ff;
+  background: rgba(0, 243, 255, 0.04);
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.08);
+}
+
+.class-card .class-icon {
+  color: #00f3ff;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: center;
+}
+
+.class-card h3 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #ffffff;
+  margin: 4px 0 2px;
+}
+
+.class-card .class-role {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  color: #8899a6;
+  margin: 0 0 6px;
+}
+
+.class-card .class-abilities {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.class-card .class-abilities span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.52rem;
+  color: #8899a6;
+}
+
+.class-card .class-passive {
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.52rem;
+  color: #ffcc00;
+  padding: 2px 6px;
+  background: rgba(255, 204, 0, 0.06);
+  border-radius: 2px;
+  display: inline-block;
+}
+
 .lobby-card form {
   display: flex;
   flex-direction: column;
@@ -293,6 +367,46 @@
   right: 0;
   background: rgba(0, 0, 0, 0.7);
   transition: height 0.15s linear;
+}
+
+.channel-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 180, 0, 0.4);
+  transition: height 0.1s linear;
+}
+
+.ability.channeling {
+  border-color: rgba(255, 180, 0, 0.5);
+  animation: channelPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes channelPulse {
+  from { box-shadow: 0 0 5px rgba(255, 180, 0, 0.2); }
+  to { box-shadow: 0 0 15px rgba(255, 180, 0, 0.4); }
+}
+
+.passive-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+}
+
+.passive-indicator span:first-child {
+  color: #ffcc00;
+}
+
+.passive-indicator .passive-value {
+  color: #00f3ff;
 }
 
 /* === MINIMAP === */
