@@ -342,12 +342,15 @@ class GameRoom:
         self.players: Dict[str, Player] = {}
         self.missiles: List[Missile] = []
         self.bombardment_zones: List[BombardmentZone] = []
+        self.spore_clouds: List[SporeCloud] = []
+        self.mutalisks: List[Mutalisk] = []
         self.effects: List[dict] = []
         self.connections: Dict[str, any] = {}
         self.running = False
         self.tick = 0
         self._task = None
         self._pending_messages: List[tuple] = []
+        self.current_time = 0.0
 
     def add_player(self, player_id: str, name: str, websocket, ship_class: str = "vanguard") -> Player:
         player = Player(player_id, name, ship_class)
