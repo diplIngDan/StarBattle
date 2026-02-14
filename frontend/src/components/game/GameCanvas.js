@@ -526,6 +526,73 @@ function syncScene(r, state) {
     }
   }
 
+  // --- Spore Clouds (Leviathan) ---
+  const activeClouds = new Set();
+  for (const cloud of (state.sporeClouds || [])) {
+    activeClouds.add(cloud.id);
+    if (!r.sporeCloudMeshes[cloud.id]) {
+      // Create toxic green cloud
+      const disc = MeshBuilder.CreateDisc("spore_" + cloud.id, { radius: cloud.radius, tessellation: 24 }, scene);
+      disc.rotation.x = Math.PI / 2;
+      disc.position.set(cloud.x, 0.2, cloud.z);
+      const mat = new StandardMaterial("sporeMat_" + cloud.id, scene);
+      mat.emissiveColor = new Color3(0.3, 0.6, 0.1);
+      mat.alpha = 0.2;
+      mat.disableLighting = true;
+      mat.backFaceCulling = false;
+      disc.material = mat;
+      disc.isPickable = false;
+
+      // Create particle system
+      const ps = new ParticleSystem("sporePs_" + cloud.id, 40, scene);
+      ps.emitter = new Vector3(cloud.x, 0.5, cloud.z);
+      ps.particleTexture = flareTex;
+      ps.minSize = 0.8; ps.maxSize = 2.5;
+      ps.minLifeTime = 1; ps.maxLifeTime = 2;
+      ps.emitRate = 15;
+      ps.createCylinderEmitter(cloud.radius * 0.7, 0.5, 0, 0);
+      ps.color1 = new Color4(0.3, 0.7, 0.1, 0.4);
+      ps.color2 = new Color4(0.2, 0.5, 0, 0.15);
+      ps.colorDead = new Color4(0.1, 0.3, 0, 0);
+      ps.minEmitPower = 0.3; ps.maxEmitPower = 1;
+      ps.gravity = new Vector3(0, 0.5, 0);
+      ps.start();
+
+      r.sporeCloudMeshes[cloud.id] = { disc, ps };
+    }
+    // Pulsing effect
+    r.sporeCloudMeshes[cloud.id].disc.material.alpha = 0.15 + Math.sin(Date.now() * 0.004) * 0.08;
+  }
+  for (const id of Object.keys(r.sporeCloudMeshes)) {
+    if (!activeClouds.has(id)) {
+      r.sporeCloudMeshes[id].disc.dispose();
+      r.sporeCloudMeshes[id].ps.stop();
+      r.sporeCloudMeshes[id].ps.dispose();
+      delete r.sporeCloudMeshes[id];
+    }
+  }
+
+  // --- Mutalisks (Leviathan AI units) ---
+  const activeMutalisks = new Set();
+  for (const m of (state.mutalisks || [])) {
+    activeMutalisks.add(m.id);
+    if (!r.mutaliskMeshes[m.id]) {
+      r.mutaliskMeshes[m.id] = createMutaliskMesh(scene, m.id);
+    }
+    const mesh = r.mutaliskMeshes[m.id];
+    mesh.position.x += (m.x - mesh.position.x) * 0.3;
+    mesh.position.y = 1.5; // Flying height
+    mesh.position.z += (m.z - mesh.position.z) * 0.3;
+    // Add bobbing motion
+    mesh.position.y += Math.sin(Date.now() * 0.005 + m.x) * 0.2;
+  }
+  for (const id of Object.keys(r.mutaliskMeshes)) {
+    if (!activeMutalisks.has(id)) {
+      r.mutaliskMeshes[id].dispose();
+      delete r.mutaliskMeshes[id];
+    }
+  }
+
   // --- Camera ---
   const local = state.players.find(p => p.id === playerId);
   if (local) {
@@ -545,6 +612,18 @@ function syncScene(r, state) {
       spawnYamatoFire(scene, effect.startX, effect.startZ, effect.endX, effect.endZ, flareTex);
     } else if (effect.type === 'bombardment_explode') {
       spawnBombardmentExplosions(scene, effect.x, effect.z, effect.radius, flareTex);
+    } else if (effect.type === 'bio_stasis') {
+      spawnBioStasisEffect(scene, effect.x, effect.z, flareTex);
+    } else if (effect.type === 'spore_cloud_spawn') {
+      // Initial spawn burst handled separately
+    } else if (effect.type === 'mutalisk_spawn') {
+      spawnMutaliskSpawnEffect(scene, effect.x, effect.z, flareTex);
+    } else if (effect.type === 'bile_swell') {
+      spawnBileSwellEffect(scene, effect.x, effect.z, effect.radius, flareTex);
+    } else if (effect.type === 'mutalisk_attack') {
+      spawnMutaliskAttackEffect(scene, effect.x, effect.z, effect.targetX, effect.targetZ, flareTex);
+    } else if (effect.type === 'mutalisk_death') {
+      spawnExplosion(scene, effect.x, effect.z, 'small', flareTex);
     }
   }
 
