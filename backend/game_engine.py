@@ -97,6 +97,12 @@ SHIP_CLASSES = {
         "max_energy": 100.0,
         "damage_reduction": 0.15,
     },
+    "leviathan": {
+        "max_hull": 180.0,
+        "max_shields": 120.0,
+        "max_energy": 120.0,
+        "damage_reduction": 0.0,
+    },
 }
 
 
