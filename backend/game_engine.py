@@ -527,6 +527,87 @@ class GameRoom:
         self.bombardment_zones.append(zone)
         self.effects.append({"type": "bombardment_mark", "x": x, "z": z, "radius": BOMBARDMENT_RADIUS, "ownerId": player.id})
 
+    # --- Leviathan Abilities ---
+    def _use_bio_stasis(self, player: Player):
+        if player.bio_stasis_cd > 0 or player.energy < BIO_STASIS_ENERGY:
+            return
+        nearest = self._find_nearest_enemy(player, max_range=BIO_STASIS_RANGE)
+        if nearest is None:
+            return
+        player.bio_stasis_cd = BIO_STASIS_CD
+        player.energy -= BIO_STASIS_ENERGY
+        nearest.stun_timer = BIO_STASIS_DURATION
+        nearest.is_firing = False
+        nearest.has_move_target = False
+        nearest.vx = 0.0
+        nearest.vz = 0.0
+        self.effects.append({
+            "type": "bio_stasis",
+            "playerId": player.id,
+            "targetId": nearest.id,
+            "x": nearest.x,
+            "z": nearest.z
+        })
+
+    def _use_spore_cloud(self, player: Player, x: float, z: float):
+        if player.spore_cloud_cd > 0 or player.energy < SPORE_CLOUD_ENERGY:
+            return
+        player.spore_cloud_cd = SPORE_CLOUD_CD
+        player.energy -= SPORE_CLOUD_ENERGY
+        x = max(-ARENA_SIZE, min(ARENA_SIZE, x))
+        z = max(-ARENA_SIZE, min(ARENA_SIZE, z))
+        cloud = SporeCloud(str(uuid.uuid4())[:8], player.id, x, z)
+        self.spore_clouds.append(cloud)
+        self.effects.append({
+            "type": "spore_cloud_spawn",
+            "x": x,
+            "z": z,
+            "radius": SPORE_CLOUD_RADIUS,
+            "ownerId": player.id
+        })
+
+    def _use_spawn_mutalisks(self, player: Player):
+        if player.mutalisk_cd > 0 or player.energy < MUTALISK_ENERGY:
+            return
+        player.mutalisk_cd = MUTALISK_CD
+        player.energy -= MUTALISK_ENERGY
+        for i in range(MUTALISK_SPAWN_COUNT):
+            angle_offset = (i - 1) * 0.8
+            spawn_x = player.x + math.sin(player.rotation + angle_offset) * 4
+            spawn_z = player.z + math.cos(player.rotation + angle_offset) * 4
+            mutalisk = Mutalisk(str(uuid.uuid4())[:8], player.id, spawn_x, spawn_z)
+            self.mutalisks.append(mutalisk)
+        self.effects.append({
+            "type": "mutalisk_spawn",
+            "playerId": player.id,
+            "x": player.x,
+            "z": player.z
+        })
+
+    def _use_bile_swell(self, player: Player, x: float, z: float):
+        if player.bile_swell_cd > 0 or player.energy < BILE_SWELL_ENERGY:
+            return
+        player.bile_swell_cd = BILE_SWELL_CD
+        player.energy -= BILE_SWELL_ENERGY
+        x = max(-ARENA_SIZE, min(ARENA_SIZE, x))
+        z = max(-ARENA_SIZE, min(ARENA_SIZE, z))
+        # Immediate damage and debuff
+        for other in self.players.values():
+            if other.id == player.id or not other.alive:
+                continue
+            dist = math.sqrt((other.x - x) ** 2 + (other.z - z) ** 2)
+            if dist < BILE_SWELL_RADIUS:
+                self._apply_damage(other, BILE_SWELL_DAMAGE, player)
+                other.armor_debuff_timer = BILE_SWELL_DEBUFF_DURATION
+                other.armor_debuff_amount = BILE_SWELL_ARMOR_DEBUFF
+        self.effects.append({
+            "type": "bile_swell",
+            "x": x,
+            "z": z,
+            "radius": BILE_SWELL_RADIUS,
+            "ownerId": player.id
+        })
+
     # --- Helpers ---
     def _find_nearest_enemy(self, player: Player, max_range: float = float('inf')) -> Optional[Player]:
         nearest = None
