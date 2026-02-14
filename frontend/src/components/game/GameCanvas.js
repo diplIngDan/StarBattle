@@ -252,6 +252,138 @@ function spawnBombardmentExplosions(scene, x, z, radius, texture) {
   }
 }
 
+// --- Leviathan Effect Functions ---
+function spawnBioStasisEffect(scene, x, z, texture) {
+  // Green stasis web/cocoon effect
+  const sphere = MeshBuilder.CreateSphere("stasis", { diameter: 6, segments: 12 }, scene);
+  sphere.position.set(x, 0.5, z);
+  const mat = new StandardMaterial("stasisMat", scene);
+  mat.emissiveColor = new Color3(0.2, 0.8, 0.2);
+  mat.alpha = 0.5;
+  mat.disableLighting = true;
+  mat.backFaceCulling = false;
+  mat.wireframe = true;
+  sphere.material = mat;
+  sphere.isPickable = false;
+
+  const ps = new ParticleSystem("stasisPs", 50, scene);
+  ps.emitter = new Vector3(x, 0.5, z);
+  ps.particleTexture = texture;
+  ps.minSize = 0.2; ps.maxSize = 0.6;
+  ps.minLifeTime = 0.3; ps.maxLifeTime = 0.8;
+  ps.emitRate = 60;
+  ps.createSphereEmitter(3);
+  ps.color1 = new Color4(0.2, 1, 0.3, 0.8);
+  ps.color2 = new Color4(0, 0.6, 0.2, 0.3);
+  ps.minEmitPower = 0.5; ps.maxEmitPower = 2;
+  ps.targetStopDuration = 2.5;
+  ps.disposeOnStop = true;
+  ps.start();
+
+  setTimeout(() => { try { sphere.dispose(); } catch (e) { /* noop */ } }, 2500);
+}
+
+function spawnMutaliskSpawnEffect(scene, x, z, texture) {
+  const ps = new ParticleSystem("mutaSpawn", 100, scene);
+  ps.emitter = new Vector3(x, 0.5, z);
+  ps.particleTexture = texture;
+  ps.minSize = 0.3; ps.maxSize = 1;
+  ps.minLifeTime = 0.2; ps.maxLifeTime = 0.6;
+  ps.emitRate = 200;
+  ps.createSphereEmitter(3);
+  ps.color1 = new Color4(0.6, 0.3, 0.8, 1);
+  ps.color2 = new Color4(0.3, 0.1, 0.5, 0.5);
+  ps.minEmitPower = 3; ps.maxEmitPower = 8;
+  ps.targetStopDuration = 0.3;
+  ps.disposeOnStop = true;
+  ps.start();
+}
+
+function spawnBileSwellEffect(scene, x, z, radius, texture) {
+  // Toxic green explosion
+  const disc = MeshBuilder.CreateDisc("bile_disc", { radius: radius, tessellation: 24 }, scene);
+  disc.rotation.x = Math.PI / 2;
+  disc.position.set(x, 0.2, z);
+  const mat = new StandardMaterial("bileMat", scene);
+  mat.emissiveColor = new Color3(0.4, 0.7, 0);
+  mat.alpha = 0.4;
+  mat.disableLighting = true;
+  mat.backFaceCulling = false;
+  disc.material = mat;
+  disc.isPickable = false;
+
+  // Rising toxic particles
+  const ps = new ParticleSystem("bilePs", 200, scene);
+  ps.emitter = new Vector3(x, 0.3, z);
+  ps.particleTexture = texture;
+  ps.minSize = 0.5; ps.maxSize = 2;
+  ps.minLifeTime = 0.5; ps.maxLifeTime = 1.5;
+  ps.emitRate = 300;
+  ps.createCylinderEmitter(radius * 0.8, 0.5, 0, 0);
+  ps.color1 = new Color4(0.5, 0.8, 0, 1);
+  ps.color2 = new Color4(0.2, 0.5, 0, 0.5);
+  ps.colorDead = new Color4(0.1, 0.2, 0, 0);
+  ps.minEmitPower = 2; ps.maxEmitPower = 6;
+  ps.gravity = new Vector3(0, 2, 0);
+  ps.targetStopDuration = 0.5;
+  ps.disposeOnStop = true;
+  ps.start();
+
+  setTimeout(() => { try { disc.dispose(); } catch (e) { /* noop */ } }, 800);
+}
+
+function createMutaliskMesh(scene, id) {
+  const root = new TransformNode("mutalisk_" + id, scene);
+
+  const bodyMat = new StandardMaterial("mutaMat_" + id, scene);
+  bodyMat.emissiveColor = new Color3(0.4, 0.2, 0.6);
+  bodyMat.diffuseColor = new Color3(0.2, 0.1, 0.3);
+
+  // Small organic body
+  const body = MeshBuilder.CreateSphere("mutaBody_" + id, { diameter: 1.2, segments: 8 }, scene);
+  body.scaling.set(0.8, 0.5, 1.2);
+  body.material = bodyMat; body.parent = root; body.isPickable = false;
+
+  // Wings
+  for (const xOff of [-0.6, 0.6]) {
+    const wing = MeshBuilder.CreateDisc("mutaWing_" + id + "_" + xOff, { radius: 0.8, tessellation: 6 }, scene);
+    wing.position.set(xOff, 0.1, 0);
+    wing.rotation.x = Math.PI / 2;
+    wing.rotation.z = xOff > 0 ? 0.3 : -0.3;
+    wing.material = bodyMat; wing.parent = root; wing.isPickable = false;
+  }
+
+  return root;
+}
+
+function spawnMutaliskAttackEffect(scene, mx, mz, tx, tz, texture) {
+  // Small green projectile
+  const dx = tx - mx; const dz = tz - mz;
+  const dist = Math.sqrt(dx * dx + dz * dz);
+  if (dist < 1) return;
+  const angle = Math.atan2(dx, dz);
+  const proj = MeshBuilder.CreateSphere("mutaProj", { diameter: 0.4, segments: 6 }, scene);
+  const mat = new StandardMaterial("mutaProjMat", scene);
+  mat.emissiveColor = new Color3(0.3, 0.9, 0.2);
+  mat.disableLighting = true;
+  proj.material = mat;
+  proj.position.set(mx, 0.5, mz);
+  proj.isPickable = false;
+
+  let progress = 0;
+  const anim = setInterval(() => {
+    progress += 0.15;
+    if (progress >= 1) {
+      clearInterval(anim);
+      try { proj.dispose(); } catch (e) { /* noop */ }
+      spawnExplosion(scene, tx, tz, 'small', texture);
+      return;
+    }
+    proj.position.x = mx + dx * progress;
+    proj.position.z = mz + dz * progress;
+  }, 30);
+}
+
 function syncScene(r, state) {
   const { scene, camera, shipMeshes, missileMeshes, beamMeshes, playerId, flareTex } = r;
 
