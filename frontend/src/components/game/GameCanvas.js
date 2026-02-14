@@ -641,6 +641,7 @@ export default function GameCanvas({ gameState, playerId, arenaSize, onSendMessa
     engine: null, scene: null, camera: null,
     shipMeshes: {}, missileMeshes: {}, beamMeshes: {},
     channelBeams: {}, repairEffects: {}, bombardmentMeshes: {},
+    sporeCloudMeshes: {}, mutaliskMeshes: {},
     moveIndicator: null, flareTex: null,
     isFiring: false, lastAimTime: 0, lastMouseWorld: null,
     gameState: null, playerId: null, onSendMessage: null,
