@@ -707,8 +707,12 @@ class GameRoom:
                     else:
                         player.rotation += rotation_amount * (1 if angle_diff > 0 else -1)
                     player.rotation = player.rotation % (2 * math.pi)
-                    thrust_x = math.sin(player.rotation) * SHIP_ACCELERATION
-                    thrust_z = math.cos(player.rotation) * SHIP_ACCELERATION
+                    # Apply slow reduction if affected
+                    accel = SHIP_ACCELERATION
+                    if player.slow_amount > 0:
+                        accel *= (1 - player.slow_amount)
+                    thrust_x = math.sin(player.rotation) * accel
+                    thrust_z = math.cos(player.rotation) * accel
                     player.vx += thrust_x
                     player.vz += thrust_z
                 else:
@@ -717,10 +721,14 @@ class GameRoom:
             # Drag
             player.vx *= SHIP_DRAG
             player.vz *= SHIP_DRAG
+            # Apply max speed with slow reduction
+            max_speed = SHIP_MAX_SPEED
+            if player.slow_amount > 0:
+                max_speed *= (1 - player.slow_amount)
             speed = math.sqrt(player.vx ** 2 + player.vz ** 2)
-            if speed > SHIP_MAX_SPEED:
-                player.vx = (player.vx / speed) * SHIP_MAX_SPEED
-                player.vz = (player.vz / speed) * SHIP_MAX_SPEED
+            if speed > max_speed:
+                player.vx = (player.vx / speed) * max_speed
+                player.vz = (player.vz / speed) * max_speed
 
             # Position
             player.x += player.vx
