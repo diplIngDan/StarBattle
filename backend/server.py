@@ -55,7 +55,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
     player_id = str(uuid.uuid4())[:8]
 
     room = room_manager.get_or_create_room(room_id)
-    player = room.add_player(player_id, name, websocket, ship_class)
+    room.add_player(player_id, name, websocket, ship_class)
 
     try:
         await websocket.send_json({
