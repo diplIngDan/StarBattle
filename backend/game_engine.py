@@ -660,7 +660,9 @@ class GameRoom:
         self.effects.clear()
         state_json = json.dumps(state)
         disconnected = []
-        for player_id, ws in self.connections.items():
+        # Create a copy of connections to avoid dictionary changed size during iteration
+        connections_copy = dict(self.connections)
+        for player_id, ws in connections_copy.items():
             try:
                 await ws.send_text(state_json)
             except Exception:
